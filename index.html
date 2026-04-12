@@ -149,6 +149,16 @@
         .song-info h3 { font-size: 1.8rem; margin-bottom: 5px; }
         .song-info p { font-size: 1.1rem; opacity: 0.7; }
 
+        .diff-badge {
+            background: var(--glass);
+            border: 1px solid var(--border);
+            padding: 4px 12px;
+            border-radius: 10px;
+            font-size: 0.8rem;
+            margin-top: 8px;
+            display: inline-block;
+        }
+
         @keyframes bounceInLeft { from { transform: translateX(-100%); } to { transform: translateX(0); } }
         @keyframes bounceInRight { from { transform: translateX(100%); } to { transform: translateX(0); } }
         @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
@@ -516,15 +526,15 @@
 
     <script>
         const songs = [
-            { id: 0, name: "Puertas", artist: "El Cuarteto de Nos", path: "music/puertas.mp3", duration: 228, diff: 180 },
-            { id: 1, name: "ART OF GUITAR", artist: "Marcin, RJ Pasin", path: "music/marcin.mp3", duration: 143, diff: 155 },
-            { id: 2, name: "Everything Black", artist: "Unlike Pluto", path: "music/unlike.mp3", duration: 229, diff: 180 },
-            { id: 3, name: "Chop Suey!", artist: "System Of A Down", path: "music/system.mp3", duration: 208, diff: 170 },
-            { id: 4, name: "Adoウタカタララバイ", artist: "Ado", path: "music/onepiece.mp3", duration: 193, diff: 135 },
-            { id: 5, name: "Pañuelito Rojo", artist: "Big Metra", path: "music/bigmetra.mp3", duration: 216, diff: 110 },
-            { id: 6, name: "Trato de no trabarme", artist: "Big Metra", path: "music/bigmetra2.mp3", duration: 228, diff: 85, death: true },
-            { id: 7, name: "Puppet vs Tails Doll", artist: "Kronno Zomber", path: "music/puppet.mp3", duration: 285, diff: 130 },
-            { id: 8, name: "AiAiA", artist: "Ado", path: "music/aiaia.mp3", duration: 259, diff: 145 }
+            { id: 0, name: "Puertas", artist: "El Cuarteto de Nos", path: "music/puertas.mp3", duration: 228, diff: 180, speed: 2.2 },
+            { id: 1, name: "ART OF GUITAR", artist: "Marcin, RJ Pasin", path: "music/marcin.mp3", duration: 143, diff: 155, speed: 1.8 },
+            { id: 2, name: "Everything Black", artist: "Unlike Pluto", path: "music/unlike.mp3", duration: 229, diff: 180, speed: 2.1 },
+            { id: 3, name: "Chop Suey!", artist: "System Of A Down", path: "music/system.mp3", duration: 208, diff: 170, speed: 1.6 },
+            { id: 4, name: "Adoウタカタララバイ", artist: "Ado", path: "music/onepiece.mp3", duration: 193, diff: 135, speed: 1.9 },
+            { id: 5, name: "Pañuelito Rojo", artist: "Big Metra", path: "music/bigmetra.mp3", duration: 216, diff: 110, speed: 1.4 },
+            { id: 6, name: "Trato de no trabarme", artist: "Big Metra", path: "music/bigmetra2.mp3", duration: 228, diff: 85, death: true, speed: 1.2 },
+            { id: 7, name: "Puppet vs Tails Doll", artist: "Kronno Zomber", path: "music/puppet.mp3", duration: 285, diff: 130, speed: 2.0 },
+            { id: 8, name: "AiAiA", artist: "Ado", path: "music/aiaia.mp3", duration: 259, diff: 145, speed: 2.1 }
         ];
 
         const arrowSvgs = [
@@ -565,6 +575,7 @@
         function initSongList() {
             const container = document.getElementById('right-song-container');
             songs.forEach((s, i) => {
+                const diffLabel = s.death ? "LEGEND" : (s.diff < 100 ? "HARD" : s.diff < 150 ? "NORMAL" : "EASY");
                 const bar = document.createElement('div');
                 bar.className = 'song-bar';
                 bar.id = `song-bar-${i}`;
@@ -576,7 +587,8 @@
                     </div>
                     <div class="song-info">
                         <h3>${s.name}</h3>
-                        <p>${s.artist} • ${s.death ? 'DEATH' : 'Normal'}</p>
+                        <p>${s.artist}</p>
+                        <span class="diff-badge">${diffLabel} • LVL ${Math.floor((200-s.diff)/10)}</span>
                     </div>
                 `;
                 container.appendChild(bar);
@@ -643,6 +655,7 @@
             lives = song.death ? 1 : 3;
             initialLives = lives;
             combo = 0; score = 0; perfects = 0; misses = 0; maxCombo = 0;
+            lastBeatTime = 0;
             activeNotes = [];
             document.getElementById('track').querySelectorAll('.note').forEach(n => n.remove());
             document.getElementById('combo-text').textContent = "0";
@@ -662,7 +675,8 @@
             let bass = energy / 8;
             const song = songs[selectedSongIndex];
             const now = Date.now();
-            if (bass > song.diff && (now - lastBeatTime) > (song.death ? 160 : 280)) {
+            const cooldown = song.death ? 140 : 250;
+            if (bass > song.diff && (now - lastBeatTime) > cooldown) {
                 lastBeatTime = now;
                 spawnNote(Math.floor(Math.random() * 4));
             }
@@ -670,13 +684,14 @@
 
         function spawnNote(lane) {
             const track = document.getElementById('track');
+            const song = songs[selectedSongIndex];
             const n = document.createElement('div');
             n.className = 'note';
             n.setAttribute('data-lane', lane);
             n.innerHTML = arrowSvgs[lane];
             const slot = document.getElementById(`s${lane}`);
             n.style.left = slot.offsetLeft + 'px';
-            n.style.animation = `noteFall 2.2s linear forwards`;
+            n.style.animation = `noteFall ${song.speed}s linear forwards`;
             track.appendChild(n);
             const obj = { el: n, lane, hit: false, id: Math.random() };
             activeNotes.push(obj);
@@ -698,7 +713,7 @@
                     const nRect = n.el.getBoundingClientRect();
                     const nY = nRect.top + 37;
                     const diff = Math.abs(nY - sY);
-                    if(diff < 75) {
+                    if(diff < 85) {
                         hit = true; n.hit = true; n.el.remove();
                         combo++; if(combo > maxCombo) maxCombo = combo;
                         perfects++; score += (100 * (1 + combo * 0.05));
@@ -739,9 +754,12 @@
 
         function restartSong() {
             isDead = false; isPaused = false;
+            activeNotes.forEach(n => n.el.remove());
+            activeNotes = [];
             initGame();
             audio.currentTime = 0;
             audio.play();
+            analyzerActive = true;
             analyzeLoop();
         }
 
