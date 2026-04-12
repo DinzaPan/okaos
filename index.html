@@ -373,30 +373,51 @@
             position: fixed;
             inset: 0;
             z-index: 3000;
-            background: rgba(0,0,0,0.95);
-            backdrop-filter: blur(20px);
+            background: rgba(0,0,0,0.92);
+            backdrop-filter: blur(15px);
             display: none;
-            justify-content: center;
             align-items: center;
+            justify-content: space-between;
+            padding: 0 100px;
+        }
+
+        .overlay-left {
+            display: flex;
             flex-direction: column;
+            gap: 15px;
+            width: 350px;
+        }
+
+        .overlay-title-main {
+            font-size: 4rem;
+            font-weight: 700;
+            margin-bottom: 20px;
+            text-transform: uppercase;
+            letter-spacing: -2px;
+        }
+
+        .overlay-right {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 30px;
+            animation: bounceInRight 0.6s cubic-bezier(0.2, 1, 0.3, 1) forwards;
         }
 
         .results-panel {
             background: rgba(255, 255, 255, 0.05);
             border: 1px solid var(--border);
             border-radius: 40px;
-            padding: 50px;
-            margin-bottom: 30px;
+            padding: 40px;
             width: 500px;
-            text-align: center;
         }
 
-        .results-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 20px; }
-        .res-item { background: rgba(0,0,0,0.4); padding: 20px; border-radius: 20px; border: 1px solid var(--border); }
+        .results-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 20px; }
+        .res-item { background: rgba(0,0,0,0.4); padding: 20px; border-radius: 20px; border: 1px solid var(--border); text-align: left;}
         .res-item span { display: block; font-size: 0.8rem; color: #aaa; margin-bottom: 5px; text-transform: uppercase; }
         .res-item b { font-size: 1.8rem; color: #fff; }
         
-        .star-display { font-size: 4rem; margin-bottom: 15px; display: flex; justify-content: center; gap: 15px; }
+        .star-display { font-size: 4rem; margin-bottom: 10px; display: flex; justify-content: center; gap: 15px; }
         .star { color: rgba(255, 255, 255, 0.1); transition: 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
         .star.active { color: #ffd700; text-shadow: 0 0 40px #ffd700; transform: scale(1.2); }
 
@@ -432,21 +453,29 @@
         }
 
         .action-btn {
+            background: linear-gradient(90deg, var(--glass) 0%, rgba(255,255,255,0) 100%);
+            border: 1px solid var(--border);
+            border-left: none;
+            padding: 22px 60px 22px 40px;
             width: 100%;
-            padding: 18px;
-            border-radius: 20px;
-            border: none;
-            background: #fff;
-            color: #000;
-            font-size: 1.1rem;
-            font-weight: 700;
+            border-radius: 0 50px 50px 0;
+            font-size: 1.3rem;
+            font-weight: 600;
             cursor: pointer;
-            margin-top: 10px;
-            transition: transform 0.2s;
+            color: #fff;
+            text-align: left;
+            transition: 0.4s cubic-bezier(0.2, 1, 0.3, 1);
+            transform: translateX(-100%);
+            animation: bounceInLeft 0.5s cubic-bezier(0.2, 1, 0.3, 1) forwards;
         }
 
-        .action-btn:active { transform: scale(0.95); }
-        .action-btn.secondary { background: rgba(255,255,255,0.1); color: #fff; border: 1px solid var(--border); }
+        .action-btn:hover {
+            background: var(--accent);
+            color: #000;
+            padding-left: 60px;
+        }
+
+        .action-btn.secondary { border-color: rgba(255,255,255,0.2); }
 
     </style>
 </head>
@@ -558,8 +587,14 @@
     </div>
 
     <div id="overlay-game">
-        <h2 id="overlay-title" style="font-size:3rem; margin-bottom:20px;">PAUSA</h2>
-        <div id="results-container" style="display:none;">
+        <div class="overlay-left" id="overlay-menu-btns">
+            <h2 class="overlay-title-main" id="overlay-title">PAUSA</h2>
+            <button class="action-btn" id="btn-resume" style="animation-delay: 0.1s;" onclick="togglePause()">REANUDAR</button>
+            <button class="action-btn" id="btn-restart" style="animation-delay: 0.2s;" onclick="restartSong()">REINICIAR</button>
+            <button class="action-btn secondary" style="animation-delay: 0.3s;" onclick="location.reload()">VOLVER AL MENÚ</button>
+        </div>
+
+        <div class="overlay-right" id="results-display" style="display: none;">
             <div class="results-panel">
                 <div class="star-display" id="res-stars">
                     <span class="star">★</span>
@@ -573,11 +608,6 @@
                     <div class="res-item"><span>Fallos</span><b id="res-miss">0</b></div>
                 </div>
             </div>
-        </div>
-        <div style="width: 450px; display: flex; flex-direction: column; gap: 10px;">
-            <button class="action-btn" onclick="togglePause()">REANUDAR</button>
-            <button class="action-btn" onclick="restartSong()">REINICIAR</button>
-            <button class="action-btn secondary" onclick="location.reload()">VOLVER AL MENÚ</button>
         </div>
     </div>
 
@@ -607,7 +637,7 @@
         let isPaused = false, isDead = false, analyzerActive = false;
         let activeNotes = [];
         let audioCtx, analyzer, dataArray;
-        let lastSpawn = 0, spawnCooldown = 120;
+        let lastSpawn = 0, spawnCooldown = 150;
         let audioOffset = 0, trackOpacity = 0.02, flashIntensity = 30;
         const audio = document.getElementById('game-audio');
 
@@ -702,7 +732,6 @@
             localStorage.setItem('okao_offset', audioOffset);
             localStorage.setItem('okao_opacity', trackOpacity);
             localStorage.setItem('okao_flash', flashIntensity);
-            alert("Ajustes Guardados");
         }
 
         function loadSavedSettings() {
@@ -793,25 +822,28 @@
 
             bass /= 4; lowMid /= 8; mid /= 18; treble /= 30;
 
-            let dynamicPlayback = 1.0 + (treble / 350);
-            audio.playbackRate = Math.min(1.4, Math.max(0.85, dynamicPlayback));
-
             const now = Date.now() + audioOffset;
             const song = songs[selectedSongIndex];
             
             if (now - lastSpawn > spawnCooldown) {
-                if (bass > song.diff) { spawnNote(0); lastSpawn = now; }
-                else if (lowMid > song.diff + 15) { spawnNote(1); lastSpawn = now; }
-                else if (mid > song.diff + 25) { spawnNote(2); lastSpawn = now; }
-                else if (treble > song.diff + 40) { spawnNote(3); lastSpawn = now; }
+                let lanesToSpawn = [];
+                if (bass > song.diff) lanesToSpawn.push(0);
+                if (lowMid > song.diff + 10) lanesToSpawn.push(1);
+                if (mid > song.diff + 20) lanesToSpawn.push(2);
+                if (treble > song.diff + 30) lanesToSpawn.push(3);
+
+                if (lanesToSpawn.length > 2) {
+                    lanesToSpawn = lanesToSpawn.sort(() => 0.5 - Math.random()).slice(0, 2);
+                }
+
+                lanesToSpawn.forEach(l => spawnNote(l));
+                if (lanesToSpawn.length > 0) lastSpawn = now;
             }
 
             activeNotes.forEach(n => {
                 let currentY = parseFloat(n.el.style.top || -100);
-                let speedBase = song.speed * 9;
-                let finalSpeed = speedBase * audio.playbackRate;
-                
-                n.el.style.top = (currentY + finalSpeed) + 'px';
+                let speedBase = song.speed * 8.5;
+                n.el.style.top = (currentY + speedBase) + 'px';
                 
                 if (currentY > window.innerHeight) {
                     n.el.remove();
@@ -829,14 +861,10 @@
             el.className = 'note';
             el.dataset.lane = lane;
             el.innerHTML = arrowSvgs[lane];
-            
             const slot = document.getElementById(`s${lane}`);
             const trackRect = document.getElementById('track').getBoundingClientRect();
             const slotRect = slot.getBoundingClientRect();
-            
-            const relativeLeft = slotRect.left - trackRect.left;
-            
-            el.style.left = relativeLeft + 'px';
+            el.style.left = (slotRect.left - trackRect.left) + 'px';
             el.style.top = '-100px';
             document.getElementById('track').appendChild(el);
             activeNotes.push({ id, el, lane, hit: false });
@@ -846,43 +874,22 @@
             if(isPaused || isDead) return;
             const slot = document.getElementById(`s${lane}`);
             slot.classList.add('pressed');
-            
-            if (flashIntensity > 0) {
-                slot.style.boxShadow = `0 0 ${flashIntensity}px var(--k${lane+1})`;
-            }
-
-            setTimeout(() => {
-                slot.classList.remove('pressed');
-                slot.style.boxShadow = 'none';
-            }, 100);
+            if (flashIntensity > 0) slot.style.boxShadow = `0 0 ${flashIntensity}px var(--k${lane+1})`;
+            setTimeout(() => { slot.classList.remove('pressed'); slot.style.boxShadow = 'none'; }, 100);
 
             const hitZone = window.innerHeight - 165;
-            let note = activeNotes.find(n => n.lane == lane && !n.hit && parseFloat(n.el.style.top) > hitZone - 100);
+            let note = activeNotes.find(n => n.lane == lane && !n.hit && parseFloat(n.el.style.top) > hitZone - 120);
 
             if (note) {
                 const noteY = parseFloat(note.el.style.top);
                 const dist = Math.abs(noteY - hitZone);
                 note.hit = true;
                 note.el.remove();
-                
-                if (dist < 45) { 
-                    score += (100 * (1 + combo * 0.02)); 
-                    combo++; 
-                    perfects++;
-                    updateStatus('PERFECT', '#00ffcc'); 
-                } else { 
-                    score += (50 * (1 + combo * 0.01)); 
-                    combo++; 
-                    updateStatus('GREAT', '#eab000'); 
-                }
-
+                if (dist < 50) { score += (100 * (1 + combo * 0.02)); combo++; perfects++; updateStatus('PERFECT', '#00ffcc'); } 
+                else { score += (50 * (1 + combo * 0.01)); combo++; updateStatus('GREAT', '#eab000'); }
                 if (combo > maxCombo) maxCombo = combo;
                 document.getElementById('combo-text').textContent = combo;
-                document.getElementById('combo-text').style.transform = 'scale(1.2)';
-                setTimeout(() => document.getElementById('combo-text').style.transform = 'scale(1)', 100);
-            } else {
-                loseLife();
-            }
+            } else { loseLife(); }
         }
 
         function loseLife() {
@@ -907,23 +914,33 @@
             if(isDead) return;
             isPaused = !isPaused;
             if (isPaused) audio.pause(); else { audio.play(); requestAnimationFrame(gameLoop); }
-            document.getElementById('overlay-game').style.display = isPaused ? 'flex' : 'none';
-            document.getElementById('overlay-title').textContent = "PAUSA";
-            document.getElementById('results-container').style.display = 'none';
+            
+            const overlay = document.getElementById('overlay-game');
+            overlay.style.display = isPaused ? 'flex' : 'none';
+            document.getElementById('overlay-title').textContent = "Juego Pausado";
+            document.getElementById('results-display').style.display = 'none';
+            document.getElementById('btn-resume').style.display = 'block';
+
+            if(isPaused) {
+                const btns = document.querySelectorAll('.action-btn');
+                btns.forEach(b => { b.style.animation = 'none'; setTimeout(() => b.style.animation = '', 10); });
+            }
         }
 
         function restartSong() {
             activeNotes.forEach(n => n.el.remove());
             activeNotes = [];
-            initGame();
             document.getElementById('overlay-game').style.display = 'none';
+            initGame();
         }
 
         function endGame(win) {
             isDead = true; analyzerActive = false; audio.pause();
-            document.getElementById('overlay-game').style.display = 'flex';
-            document.getElementById('results-container').style.display = 'block';
-            document.getElementById('overlay-title').textContent = win ? "¡COMPLETADO!" : "HAS PERDIDO";
+            const overlay = document.getElementById('overlay-game');
+            overlay.style.display = 'flex';
+            document.getElementById('btn-resume').style.display = 'none';
+            document.getElementById('results-display').style.display = 'flex';
+            document.getElementById('overlay-title').textContent = win ? "COMPLETADO" : "GAME OVER";
             
             const stars = document.querySelectorAll('.star');
             stars.forEach(s => s.classList.remove('active'));
@@ -949,6 +966,8 @@
                 return;
             }
             if (e.key === 'Escape') togglePause();
+            if (e.key === 'Enter' && isPaused && !isDead) togglePause();
+            if (e.key === 'Enter' && isDead) restartSong();
             const idx = gameKeys.indexOf(k);
             if (idx !== -1) handleInput(idx);
         });
