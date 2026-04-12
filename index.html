@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>OKAOs - Selection</title>
+    <title>OKAOs - Selection Menu</title>
     <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
         * {
@@ -16,8 +16,9 @@
         :root {
             --bg: #05050a;
             --accent: #ffffff;
-            --glass: rgba(255, 255, 255, 0.08);
+            --glass: rgba(255, 255, 255, 0.07);
             --border: rgba(255, 255, 255, 0.15);
+            --pink: #ff66aa;
         }
 
         body {
@@ -36,126 +37,159 @@
             left: 50%;
             top: 50%;
             transform: translate(-50%, -50%);
-            font-size: 15rem;
+            font-size: 18rem;
             font-weight: 700;
-            opacity: 0.05;
+            opacity: 0.03;
             pointer-events: none;
+            letter-spacing: -10px;
         }
 
-        #menu-container {
+        #left-bar-container {
             position: fixed;
             left: 0;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            z-index: 10;
-        }
-
-        .menu-item {
-            background: var(--glass);
-            border: 1px solid var(--border);
-            border-left: none;
-            padding: 25px 60px 25px 40px;
-            width: 350px;
-            border-radius: 0 50px 50px 0;
-            font-size: 1.6rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            transform: translateX(-100%);
-            animation: bounceInLeft 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
-        }
-
-        .menu-item:hover {
-            background: var(--accent);
-            color: #000;
-            width: 400px;
-        }
-
-        #song-selection {
-            position: fixed;
-            right: 0;
             display: flex;
             flex-direction: column;
             gap: 12px;
             z-index: 10;
         }
 
-        .song-card {
-            background: rgba(255, 255, 255, 0.05);
+        .menu-bar {
+            background: linear-gradient(90deg, var(--glass) 0%, rgba(255,255,255,0.01) 100%);
             border: 1px solid var(--border);
+            border-left: none;
+            padding: 20px 60px 20px 40px;
+            width: 320px;
+            border-radius: 0 40px 40px 0;
+            font-size: 1.4rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            transform: translateX(-100%);
+            animation: bounceInLeft 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .menu-bar:hover {
+            background: var(--accent);
+            color: #000;
+            width: 380px;
+        }
+
+        #right-song-container {
+            position: fixed;
+            right: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            z-index: 10;
+        }
+
+        .song-bar {
+            background: linear-gradient(-90deg, rgba(255, 102, 170, 0.15) 0%, rgba(255, 102, 170, 0.02) 100%);
+            border: 1px solid rgba(255, 102, 170, 0.3);
             border-right: none;
-            padding: 20px 40px 20px 60px;
-            width: 500px;
-            border-radius: 50px 0 0 50px;
+            padding: 25px 40px 25px 70px;
+            width: 550px;
+            border-radius: 60px 0 0 60px;
             cursor: pointer;
             display: flex;
             align-items: center;
-            gap: 20px;
+            justify-content: space-between;
             transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             transform: translateX(100%);
             animation: bounceInRight 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
         }
 
-        .song-card:hover {
-            background: rgba(255, 255, 255, 0.15);
-            width: 550px;
+        .song-bar:hover {
+            background: var(--pink);
+            width: 620px;
             border-color: #fff;
         }
 
-        .disc-icon {
-            width: 60px;
-            height: 60px;
+        .song-bar:hover .song-info h3, 
+        .song-bar:hover .song-info p { color: #000; }
+
+        .disc-wrap {
+            width: 70px;
+            height: 70px;
+            background: rgba(0,0,0,0.3);
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .disc-svg {
+            width: 50px;
+            height: 50px;
             fill: #fff;
-            animation: spin 4s linear infinite;
+            animation: spin 3s linear infinite;
         }
 
-        .song-details h3 { font-size: 1.4rem; }
-        .song-details p { font-size: 0.9rem; color: #bbb; }
+        .song-info { text-align: right; }
+        .song-info h3 { font-size: 1.6rem; transition: 0.3s; }
+        .song-info p { font-size: 1rem; color: #ff99cc; transition: 0.3s; }
 
-        @keyframes bounceInLeft {
-            0% { transform: translateX(-100%); }
-            100% { transform: translateX(0); }
-        }
+        @keyframes bounceInLeft { to { transform: translateX(0); } }
+        @keyframes bounceInRight { to { transform: translateX(0); } }
+        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
 
-        @keyframes bounceInRight {
-            0% { transform: translateX(100%); }
-            100% { transform: translateX(0); }
-        }
-
-        @keyframes spin {
-            from { transform: rotate(0deg); }
-            to { transform: rotate(360deg); }
-        }
-
-        #settings-layer {
+        #overlay-settings {
             position: fixed;
             inset: 0;
-            background: rgba(0,0,0,0.9);
+            background: rgba(0,0,0,0.95);
             display: none;
             justify-content: center;
             align-items: center;
-            z-index: 100;
+            z-index: 1000;
         }
 
-        .settings-box {
-            background: #111;
+        .settings-card {
+            background: #0a0a0f;
             padding: 50px;
             border-radius: 40px;
-            border: 1px solid var(--border);
-            width: 450px;
+            border: 2px solid var(--border);
+            width: 500px;
+            text-align: center;
         }
 
-        input[type="range"] { width: 100%; margin: 20px 0; }
-        
-        .save-btn {
+        .key-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            margin: 30px 0;
+        }
+
+        .key-binder {
+            background: var(--glass);
+            border: 2px solid var(--border);
+            padding: 20px 10px;
+            border-radius: 15px;
+            font-size: 1.5rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .key-binder.waiting {
+            border-color: var(--pink);
+            color: var(--pink);
+            box-shadow: 0 0 15px var(--pink);
+        }
+
+        .action-btn {
             width: 100%;
             padding: 20px;
             border-radius: 20px;
             border: none;
             background: #fff;
+            color: #000;
+            font-size: 1.1rem;
             font-weight: 700;
             cursor: pointer;
+            margin-top: 10px;
         }
     </style>
 </head>
@@ -163,38 +197,96 @@
 
     <div class="center-bg">OKAOs</div>
 
-    <div id="menu-container">
-        <div class="menu-item" style="animation-delay: 0.1s;">Inicio</div>
-        <div class="menu-item" style="animation-delay: 0.2s;">Perfil</div>
-        <div class="menu-item" style="animation-delay: 0.3s;">Misiones</div>
-        <div class="menu-item" style="animation-delay: 0.4s;" onclick="toggleConfig(true)">Ajustes</div>
+    <div id="left-bar-container">
+        <div class="menu-bar" style="animation-delay: 0.1s;">Inicio</div>
+        <div class="menu-bar" style="animation-delay: 0.2s;">Perfil</div>
+        <div class="menu-bar" style="animation-delay: 0.3s;">Misiones</div>
+        <div class="menu-bar" style="animation-delay: 0.4s;" onclick="toggleSettings(true)">Ajustes</div>
     </div>
 
-    <div id="song-selection">
-        <div class="song-card" style="animation-delay: 0.5s;" onclick="goToPlay('Puertas', 'music/puertas.mp3')">
-            <svg class="disc-icon" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 14.5c-2.49 0-4.5-2.01-4.5-4.5S9.51 7.5 12 7.5s4.5 2.01 4.5 4.5-2.01 4.5-4.5 4.5zm0-5.5c-.55 0-1 .45-1 1s.45 1 1 1 1-.45 1-1-.45-1-1-1z"/></svg>
-            <div class="song-details">
+    <div id="right-song-container">
+        <div class="song-bar" style="animation-delay: 0.6s;" onclick="startPlay('Puertas', 'music/puertas.mp3')">
+            <div class="disc-wrap">
+                <svg class="disc-svg" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 14.5c-2.49 0-4.5-2.01-4.5-4.5S9.51 7.5 12 7.5s4.5 2.01 4.5 4.5-2.01 4.5-4.5 4.5zm0-5.5c-.55 0-1 .45-1 1s.45 1 1 1 1-.45 1-1-.45-1-1-1z"/></svg>
+            </div>
+            <div class="song-info">
                 <h3>Puertas</h3>
-                <p>Normal • 3:48</p>
-                <p style="color: #00ff88; font-weight: 600; margin-top: 5px;">Record: 0</p>
+                <p>Normal • Dificultad 4.5★</p>
             </div>
         </div>
     </div>
 
-    <div id="settings-layer">
-        <div class="settings-box">
-            <h2>Configuración</h2>
-            <div style="margin-top: 20px;">
-                <label>Volumen General</label>
-                <input type="range" id="vol-input" min="0" max="1" step="0.1" value="1">
+    <div id="overlay-settings">
+        <div class="settings-card">
+            <h2 style="font-size: 2rem; margin-bottom: 10px;">Ajustes</h2>
+            <p style="opacity: 0.6;">Configura tus teclas y volumen</p>
+            
+            <div style="margin-top: 30px;">
+                <label style="display: block; text-align: left; margin-bottom: 10px;">Volumen</label>
+                <input type="range" id="vol-control" min="0" max="1" step="0.1" value="1" style="width: 100%;">
             </div>
-            <button class="save-btn" onclick="saveSettings()">CERRAR Y GUARDAR</button>
+
+            <div style="margin-top: 30px;">
+                <label style="display: block; text-align: left; margin-bottom: 10px;">Teclas de Juego</label>
+                <div class="key-grid">
+                    <div class="key-binder" id="kb0" onclick="listenKey(0)">A</div>
+                    <div class="key-binder" id="kb1" onclick="listenKey(1)">S</div>
+                    <div class="key-binder" id="kb2" onclick="listenKey(2)">K</div>
+                    <div class="key-binder" id="kb3" onclick="listenKey(3)">L</div>
+                </div>
+            </div>
+
+            <button class="action-btn" onclick="saveAll()">GUARDAR CAMBIOS</button>
         </div>
     </div>
 
     <script>
-        function goToPlay(name, file) {
-            localStorage.setItem('selectedSong', file);
+        let currentKeys = ['a', 's', 'k', 'l'];
+        let bindingIndex = -1;
+
+        function loadSaved() {
+            const k = localStorage.getItem('okao_keys');
+            if(k) {
+                currentKeys = JSON.parse(k);
+                currentKeys.forEach((key, i) => {
+                    document.getElementById(`kb${i}`).textContent = key.toUpperCase();
+                });
+            }
+            const v = localStorage.getItem('okao_vol');
+            if(v) document.getElementById('vol-control').value = v;
+        }
+
+        function toggleSettings(show) {
+            document.getElementById('overlay-settings').style.display = show ? 'flex' : 'none';
+        }
+
+        function listenKey(index) {
+            bindingIndex = index;
+            document.querySelectorAll('.key-binder').forEach(b => b.classList.remove('waiting'));
+            const btn = document.getElementById(`kb${index}`);
+            btn.classList.add('waiting');
+            btn.textContent = "...";
+        }
+
+        window.addEventListener('keydown', (e) => {
+            if(bindingIndex !== -1) {
+                const newKey = e.key.toLowerCase();
+                currentKeys[bindingIndex] = newKey;
+                const btn = document.getElementById(`kb${bindingIndex}`);
+                btn.textContent = newKey.toUpperCase();
+                btn.classList.remove('waiting');
+                bindingIndex = -1;
+            }
+        });
+
+        function saveAll() {
+            localStorage.setItem('okao_keys', JSON.stringify(currentKeys));
+            localStorage.setItem('okao_vol', document.getElementById('vol-control').value);
+            toggleSettings(false);
+        }
+
+        function startPlay(name, path) {
+            localStorage.setItem('selectedSong', path);
             localStorage.setItem('selectedName', name);
             document.body.style.opacity = '0';
             document.body.style.transition = '0.5s';
@@ -203,14 +295,7 @@
             }, 500);
         }
 
-        function toggleConfig(show) {
-            document.getElementById('settings-layer').style.display = show ? 'flex' : 'none';
-        }
-
-        function saveSettings() {
-            localStorage.setItem('okao_vol', document.getElementById('vol-input').value);
-            toggleConfig(false);
-        }
+        loadSaved();
     </script>
 </body>
 </html>
