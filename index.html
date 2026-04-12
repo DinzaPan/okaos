@@ -49,6 +49,13 @@
             letter-spacing: -10px;
         }
 
+        #main-ui {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+        }
+
         #left-bar-container {
             position: fixed;
             left: 0;
@@ -154,6 +161,7 @@
             justify-content: center;
             align-items: center;
             z-index: 1000;
+            backdrop-filter: blur(10px);
         }
 
         .settings-card {
@@ -199,16 +207,20 @@
 
         .action-btn {
             width: 100%;
-            padding: 22px;
+            padding: 18px;
             border-radius: 20px;
             border: none;
             background: #fff;
             color: #000;
-            font-size: 1.2rem;
+            font-size: 1.1rem;
             font-weight: 700;
             cursor: pointer;
             margin-top: 10px;
+            transition: transform 0.2s;
         }
+
+        .action-btn:active { transform: scale(0.95); }
+        .action-btn.secondary { background: rgba(255,255,255,0.1); color: #fff; border: 1px solid var(--border); }
 
         #intro-layer {
             position: fixed;
@@ -284,7 +296,6 @@
         }
 
         .lives-container { display: flex; gap: 8px; }
-
         .life-heart { width: 30px; height: 30px; fill: #ff4757; transition: opacity 0.3s, transform 0.3s; }
 
         .pause-trigger {
@@ -362,7 +373,6 @@
         .note[data-lane="1"] { border: 3px solid var(--k2); }
         .note[data-lane="2"] { border: 3px solid var(--k3); }
         .note[data-lane="3"] { border: 3px solid var(--k4); }
-
         .note svg { width: 40px; height: 40px; fill: #000; }
 
         .ui-container {
@@ -421,32 +431,29 @@
     
     <div id="main-ui">
         <div id="left-bar-container">
-            <div class="menu-bar" style="animation-delay: 0.1s;">Inicio</div>
+            <div class="menu-bar" style="animation-delay: 0.1s;" onclick="location.reload()">Inicio</div>
             <div class="menu-bar" style="animation-delay: 0.2s;">Perfil</div>
             <div class="menu-bar" style="animation-delay: 0.3s;">Misiones</div>
             <div class="menu-bar" style="animation-delay: 0.4s;" onclick="toggleSettings(true)">Ajustes</div>
         </div>
-
         <div id="right-song-container"></div>
     </div>
 
     <div id="overlay-settings">
         <div class="settings-card">
             <h2 style="margin-bottom: 10px;">Ajustes</h2>
-            <p style="color:#888; font-size:0.9rem; margin-bottom:20px;">Configura tus teclas favoritas</p>
-            
+            <p style="color:#888; font-size:0.9rem; margin-bottom:20px;">Haz clic para cambiar una tecla</p>
             <div class="key-config-grid">
                 <div class="key-input" id="cfg-0" onclick="startKeyCapture(0)">A</div>
                 <div class="key-input" id="cfg-1" onclick="startKeyCapture(1)">S</div>
                 <div class="key-input" id="cfg-2" onclick="startKeyCapture(2)">K</div>
                 <div class="key-input" id="cfg-3" onclick="startKeyCapture(3)">L</div>
             </div>
-
             <div style="margin-bottom: 30px;">
-                <p style="color:#888; margin-bottom:10px;">Volumen</p>
+                <p style="color:#888; margin-bottom:10px;">Volumen Maestro</p>
                 <input type="range" id="vol-range" min="0" max="1" step="0.1" value="1" style="width:100%;">
             </div>
-            <button class="action-btn" onclick="toggleSettings(false)">GUARDAR Y CERRAR</button>
+            <button class="action-btn" onclick="saveAndCloseSettings()">GUARDAR CONFIGURACIÓN</button>
         </div>
     </div>
 
@@ -500,8 +507,11 @@
                 </div>
             </div>
         </div>
-        <button class="action-btn" id="resume-btn" onclick="togglePause()">REANUDAR</button>
-        <button class="action-btn" onclick="location.reload()">SALIR</button>
+        <div style="width: 450px; display: flex; flex-direction: column; gap: 10px;">
+            <button class="action-btn" id="resume-btn" onclick="togglePause()">REANUDAR (ESC)</button>
+            <button class="action-btn" id="restart-btn" onclick="restartSong()">REINICIAR (ENTER)</button>
+            <button class="action-btn secondary" onclick="location.reload()">VOLVER AL INICIO</button>
+        </div>
     </div>
 
     <script>
@@ -533,6 +543,25 @@
         let audioCtx, analyzer, dataArray, source, lastBeatTime = 0;
         const audio = document.getElementById('game-audio');
 
+        function loadSavedSettings() {
+            const savedKeys = localStorage.getItem('okao_keys');
+            const savedVol = localStorage.getItem('okao_vol');
+            if (savedKeys) {
+                gameKeys = JSON.parse(savedKeys);
+                gameKeys.forEach((k, i) => document.getElementById(`cfg-${i}`).textContent = k);
+            }
+            if (savedVol) {
+                audio.volume = savedVol;
+                document.getElementById('vol-range').value = savedVol;
+            }
+        }
+
+        function saveAndCloseSettings() {
+            localStorage.setItem('okao_keys', JSON.stringify(gameKeys));
+            localStorage.setItem('okao_vol', audio.volume);
+            toggleSettings(false);
+        }
+
         function initSongList() {
             const container = document.getElementById('right-song-container');
             songs.forEach((s, i) => {
@@ -540,11 +569,7 @@
                 bar.className = 'song-bar';
                 bar.id = `song-bar-${i}`;
                 bar.style.animationDelay = `${0.5 + (i * 0.1)}s`;
-                bar.onclick = () => {
-                    document.querySelectorAll('.song-bar').forEach(b => b.classList.remove('selected'));
-                    bar.classList.add('selected');
-                    startSequence(i);
-                };
+                bar.onclick = () => startSequence(i);
                 bar.innerHTML = `
                     <div class="disc-wrap">
                         <svg class="disc-svg" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 14.5c-2.49 0-4.5-2.01-4.5-4.5S9.51 7.5 12 7.5s4.5 2.01 4.5 4.5-2.01 4.5-4.5 4.5zm0-5.5c-.55 0-1 .45-1 1s.45 1 1 1 1-.45 1-1-.45-1-1-1z"/></svg>
@@ -563,39 +588,29 @@
         function startKeyCapture(index) {
             captureIndex = index;
             document.querySelectorAll('.key-input').forEach(el => el.classList.remove('waiting'));
-            document.getElementById(`cfg-${index}`).classList.add('waiting');
-            document.getElementById(`cfg-${index}`).textContent = "...";
+            const target = document.getElementById(`cfg-${index}`);
+            target.classList.add('waiting');
+            target.textContent = "...";
         }
 
         async function startSequence(index) {
             selectedSongIndex = index;
-            const song = songs[index];
-            
-            if (!audioCtx) {
-                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            }
-            
-            if (audioCtx.state === 'suspended') {
-                await audioCtx.resume();
-            }
-
+            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            if (audioCtx.state === 'suspended') await audioCtx.resume();
             if (!source) {
                 source = audioCtx.createMediaElementSource(audio);
                 analyzer = audioCtx.createAnalyser();
                 analyzer.fftSize = 256;
+                analyzer.smoothingTimeConstant = 0.8;
                 source.connect(analyzer);
                 analyzer.connect(audioCtx.destination);
                 dataArray = new Uint8Array(analyzer.frequencyBinCount);
             }
-
-            audio.src = song.path;
+            audio.src = songs[index].path;
             audio.load();
-
             const ui = document.getElementById('main-ui');
-            ui.style.transition = 'opacity 0.6s cubic-bezier(0.4, 0, 0.2, 1), transform 0.6s cubic-bezier(0.4, 0, 0.2, 1)';
             ui.style.opacity = '0';
             ui.style.transform = 'scale(1.1)';
-
             setTimeout(() => {
                 ui.style.display = 'none';
                 document.getElementById('intro-layer').style.display = 'flex';
@@ -607,12 +622,10 @@
             const h = [document.getElementById('ih1'), document.getElementById('ih2'), document.getElementById('ih3')];
             const msg = document.getElementById('intro-msg');
             const wait = ms => new Promise(r => setTimeout(r, ms));
-            
             for(let i=0; i<3; i++) { h[i].style.opacity = '1'; h[i].style.transform = 'scale(1.2)'; await wait(500); }
             h.forEach(x => x.style.opacity = '0'); await wait(300);
             msg.textContent = "¿LISTO?"; msg.style.opacity = '1'; await wait(800);
             msg.textContent = "¡GO!"; await wait(600);
-            
             document.getElementById('intro-layer').style.display = 'none';
             document.getElementById('game-canvas').style.display = 'flex';
             setTimeout(() => {
@@ -634,6 +647,9 @@
             document.getElementById('track').querySelectorAll('.note').forEach(n => n.remove());
             document.getElementById('combo-text').textContent = "0";
             document.getElementById('progress-bar').style.width = '0%';
+            document.getElementById('overlay-game').style.display = 'none';
+            document.getElementById('results-container').style.display = 'none';
+            document.getElementById('resume-btn').style.display = 'block';
             updateLivesUI();
         }
 
@@ -641,12 +657,12 @@
             if (!analyzerActive || isDead || isPaused) return;
             requestAnimationFrame(analyzeLoop);
             analyzer.getByteFrequencyData(dataArray);
-            let sum = 0;
-            for(let i = 0; i < 10; i++) sum += dataArray[i];
-            let bass = sum / 10;
+            let energy = 0;
+            for(let i = 0; i < 8; i++) energy += dataArray[i];
+            let bass = energy / 8;
             const song = songs[selectedSongIndex];
             const now = Date.now();
-            if (bass > song.diff && (now - lastBeatTime) > (song.death ? 150 : 250)) {
+            if (bass > song.diff && (now - lastBeatTime) > (song.death ? 160 : 280)) {
                 lastBeatTime = now;
                 spawnNote(Math.floor(Math.random() * 4));
             }
@@ -660,7 +676,7 @@
             n.innerHTML = arrowSvgs[lane];
             const slot = document.getElementById(`s${lane}`);
             n.style.left = slot.offsetLeft + 'px';
-            n.style.animation = `noteFall 2.5s linear forwards`;
+            n.style.animation = `noteFall 2.2s linear forwards`;
             track.appendChild(n);
             const obj = { el: n, lane, hit: false, id: Math.random() };
             activeNotes.push(obj);
@@ -674,17 +690,18 @@
         function handleInput(lane) {
             if(isPaused || isDead) return;
             const s = document.getElementById(`s${lane}`);
-            s.classList.add('pressed'); setTimeout(() => s.classList.remove('pressed'), 60);
+            s.classList.add('pressed'); setTimeout(() => s.classList.remove('pressed'), 70);
             const sY = s.getBoundingClientRect().top + 37;
             let hit = false;
             for(let n of activeNotes) {
                 if(n.lane === lane && !n.hit) {
-                    const nY = n.el.getBoundingClientRect().top + 32;
-                    const d = Math.abs(nY - sY);
-                    if(d < 80) {
-                        hit = true; n.hit = true; n.el.style.display = 'none';
+                    const nRect = n.el.getBoundingClientRect();
+                    const nY = nRect.top + 37;
+                    const diff = Math.abs(nY - sY);
+                    if(diff < 75) {
+                        hit = true; n.hit = true; n.el.remove();
                         combo++; if(combo > maxCombo) maxCombo = combo;
-                        perfects++; score += (100 * (1 + combo * 0.1));
+                        perfects++; score += (100 * (1 + combo * 0.05));
                         updateStatus('Perfect', '#00ffcc');
                         break;
                     }
@@ -702,40 +719,45 @@
         }
 
         function updateLivesUI() {
-            for(let i=0; i<3; i++) {
-                document.getElementById(`life-${i}`).style.opacity = i < lives ? '1' : '0.1';
-            }
+            for(let i=0; i<3; i++) document.getElementById(`life-${i}`).style.opacity = i < lives ? '1' : '0.1';
         }
 
         function updateStatus(t, c) {
             const s = document.getElementById('status-text');
             s.textContent = t; s.style.color = c; s.style.opacity = '1';
-            setTimeout(() => s.style.opacity = '0', 400);
+            setTimeout(() => { if(s.textContent === t) s.style.opacity = '0'; }, 500);
         }
 
         function togglePause() {
+            if(isDead && !isPaused) return;
             isPaused = !isPaused;
-            if(isPaused) audio.pause(); else audio.play();
+            if(isPaused) { audio.pause(); document.getElementById('overlay-title').textContent = "PAUSA"; } 
+            else { audio.play(); analyzeLoop(); }
             document.getElementById('overlay-game').style.display = isPaused ? 'flex' : 'none';
             activeNotes.forEach(n => n.el.style.animationPlayState = isPaused ? 'paused' : 'running');
         }
 
+        function restartSong() {
+            isDead = false; isPaused = false;
+            initGame();
+            audio.currentTime = 0;
+            audio.play();
+            analyzeLoop();
+        }
+
         function endGame(win) {
-            isDead = true; audio.pause();
+            isDead = true; analyzerActive = false; audio.pause();
             document.getElementById('overlay-game').style.display = 'flex';
             document.getElementById('results-container').style.display = 'block';
             document.getElementById('resume-btn').style.display = 'none';
-            document.getElementById('overlay-title').textContent = win ? "COMPLETADO" : "GAME OVER";
-            
+            document.getElementById('overlay-title').textContent = win ? "COMPLETADO" : "HAS PERDIDO";
             const stars = document.querySelectorAll('.star');
             stars.forEach(s => s.classList.remove('active'));
-
             if(win) {
                 stars[0].classList.add('active');
                 if(lives === initialLives) stars[1].classList.add('active');
                 if(misses === 0) stars[2].classList.add('active');
             }
-
             document.getElementById('res-score').textContent = Math.floor(score);
             document.getElementById('res-combo').textContent = maxCombo;
             document.getElementById('res-perfect').textContent = perfects;
@@ -749,23 +771,22 @@
 
         window.addEventListener('keydown', (e) => {
             const k = e.key.toLowerCase();
-            
             if (captureIndex !== -1) {
                 gameKeys[captureIndex] = k;
-                const el = document.getElementById(`cfg-${captureIndex}`);
-                el.textContent = k;
-                el.classList.remove('waiting');
+                document.getElementById(`cfg-${captureIndex}`).textContent = k;
+                document.getElementById(`cfg-${captureIndex}`).classList.remove('waiting');
                 captureIndex = -1;
                 return;
             }
-
+            if (e.key === 'Enter' && (isPaused || isDead)) { restartSong(); return; }
+            if (e.key === 'Escape' || e.code === 'Escape') { togglePause(); return; }
             const idx = gameKeys.indexOf(k);
             if(idx !== -1) handleInput(idx);
-            if(e.key === 'Escape') togglePause();
         });
 
         document.getElementById('vol-range').oninput = (e) => audio.volume = e.target.value;
 
+        loadSavedSettings();
         initSongList();
     </script>
 </body>
