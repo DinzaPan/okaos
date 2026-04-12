@@ -551,6 +551,7 @@
         let isPaused = false, isDead = false, analyzerActive = false;
         let activeNotes = [];
         let audioCtx, analyzer, dataArray, source, lastBeatTime = 0;
+        let currentDynamicSpeed = 2.0;
         const audio = document.getElementById('game-audio');
 
         function loadSavedSettings() {
@@ -657,6 +658,7 @@
             combo = 0; score = 0; perfects = 0; misses = 0; maxCombo = 0;
             lastBeatTime = 0;
             activeNotes = [];
+            currentDynamicSpeed = song.speed;
             document.getElementById('track').querySelectorAll('.note').forEach(n => n.remove());
             document.getElementById('combo-text').textContent = "0";
             document.getElementById('progress-bar').style.width = '0%';
@@ -670,12 +672,22 @@
             if (!analyzerActive || isDead || isPaused) return;
             requestAnimationFrame(analyzeLoop);
             analyzer.getByteFrequencyData(dataArray);
+            
             let energy = 0;
             for(let i = 0; i < 8; i++) energy += dataArray[i];
             let bass = energy / 8;
+
+            let midEnergy = 0;
+            for(let i = 8; i < 16; i++) midEnergy += dataArray[i];
+            let mids = midEnergy / 8;
+
             const song = songs[selectedSongIndex];
+            
+            currentDynamicSpeed = song.speed * (1 + (mids / 255) * 0.5);
+
             const now = Date.now();
-            const cooldown = song.death ? 140 : 250;
+            const cooldown = song.death ? 110 : Math.max(140, 280 - (bass * 0.8));
+            
             if (bass > song.diff && (now - lastBeatTime) > cooldown) {
                 lastBeatTime = now;
                 spawnNote(Math.floor(Math.random() * 4));
@@ -684,14 +696,13 @@
 
         function spawnNote(lane) {
             const track = document.getElementById('track');
-            const song = songs[selectedSongIndex];
             const n = document.createElement('div');
             n.className = 'note';
             n.setAttribute('data-lane', lane);
             n.innerHTML = arrowSvgs[lane];
             const slot = document.getElementById(`s${lane}`);
             n.style.left = slot.offsetLeft + 'px';
-            n.style.animation = `noteFall ${song.speed}s linear forwards`;
+            n.style.animation = `noteFall ${currentDynamicSpeed}s linear forwards`;
             track.appendChild(n);
             const obj = { el: n, lane, hit: false, id: Math.random() };
             activeNotes.push(obj);
