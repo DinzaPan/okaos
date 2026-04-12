@@ -691,8 +691,11 @@
         let isPaused = false, isDead = false, analyzerActive = false;
         let activeNotes = [];
         let audioCtx, analyzer, dataArray;
-        let lastSpawn = 0, spawnCooldown = 150;
+        let lastSpawn = 0, spawnCooldown = 180;
         let audioOffset = 0, trackOpacity = 0.02, flashIntensity = 30;
+        let dynamicSpeed = 1;
+        let spawnProbability = 0.5;
+        let lastSpawnTime = 0;
         const audio = document.getElementById('game-audio');
 
         function initSongList() {
@@ -879,24 +882,38 @@
             for(let i=12; i<30; i++) mid += dataArray[i];
             for(let i=30; i<60; i++) treble += dataArray[i];
             bass /= 4; lowMid /= 8; mid /= 18; treble /= 30;
+            
+            let currentEnergy = (bass + lowMid + mid + treble) / 4;
+            dynamicSpeed = 0.8 + (currentEnergy / 255) * 1.2;
+            
             const now = Date.now() + audioOffset;
             const song = songs[selectedSongIndex];
-            if (now - lastSpawn > spawnCooldown) {
+            
+            let dynamicCooldown = spawnCooldown / (0.5 + (currentEnergy / 100));
+            
+            if (now - lastSpawnTime > dynamicCooldown) {
                 let lanesToSpawn = [];
-                if (bass > song.diff) lanesToSpawn.push(0);
-                if (lowMid > song.diff + 10) lanesToSpawn.push(1);
-                if (mid > song.diff + 20) lanesToSpawn.push(2);
-                if (treble > song.diff + 30) lanesToSpawn.push(3);
+                let threshold = song.diff;
+                
+                if (bass > threshold && Math.random() < 0.6) lanesToSpawn.push(0);
+                if (lowMid > threshold + 15 && Math.random() < 0.5) lanesToSpawn.push(1);
+                if (mid > threshold + 25 && Math.random() < 0.5) lanesToSpawn.push(2);
+                if (treble > threshold + 35 && Math.random() < 0.4) lanesToSpawn.push(3);
+                
                 if (lanesToSpawn.length > 2) {
                     lanesToSpawn = lanesToSpawn.sort(() => 0.5 - Math.random()).slice(0, 2);
                 }
-                lanesToSpawn.forEach(l => spawnNote(l));
-                if (lanesToSpawn.length > 0) lastSpawn = now;
+                
+                if (lanesToSpawn.length > 0 && Math.random() > 0.1) {
+                    lanesToSpawn.forEach(l => spawnNote(l));
+                    lastSpawnTime = now;
+                }
             }
+
             activeNotes.forEach(n => {
                 let currentY = parseFloat(n.el.style.top || -100);
-                let speedBase = song.speed * 8.5;
-                n.el.style.top = (currentY + speedBase) + 'px';
+                let speedFactor = song.speed * 8.5 * dynamicSpeed;
+                n.el.style.top = (currentY + speedFactor) + 'px';
                 if (currentY > window.innerHeight) {
                     n.el.remove();
                     activeNotes = activeNotes.filter(x => x.id !== n.id);
