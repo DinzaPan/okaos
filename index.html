@@ -617,6 +617,7 @@
         const audio = document.getElementById('game-audio');
         const progressBar = document.getElementById('progress-bar');
         const settingsPanel = document.getElementById('settings-panel');
+        const livesUI = document.getElementById('lives-ui');
         
         const songs = [
             { name: "Puertas", artist: "El Cuarteto de Nos", path: "music/puertas.mp3", duration: 228, diff: 180 },
@@ -769,7 +770,20 @@
             setTimeout(() => { intro.style.display = 'none'; canvas.style.display = 'flex'; setTimeout(() => { canvas.style.opacity = '1'; initGame(); analyzerActive = true; analyzeLoop(); audio.play(); }, 50); }, 400);
         }
 
-        function initGame() { isDead = false; isPaused = false; lives = 3; combo = 0; lastBeatTime = 0; activeNotes.forEach(n => n.el.remove()); activeNotes = []; comboEl.textContent = "0"; progressBar.style.width = '0%'; updateLivesUI(); }
+        function initGame() { 
+            const song = songs[selectedSongIndex];
+            isDead = false; 
+            isPaused = false; 
+            lives = 3; 
+            combo = 0; 
+            lastBeatTime = 0; 
+            activeNotes.forEach(n => n.el.remove()); 
+            activeNotes = []; 
+            comboEl.textContent = "0"; 
+            progressBar.style.width = '0%'; 
+            livesUI.style.display = song.death ? 'none' : 'flex';
+            updateLivesUI(); 
+        }
 
         audio.ontimeupdate = () => { const song = songs[selectedSongIndex]; progressBar.style.width = `${(audio.currentTime / song.duration) * 100}%`; };
         audio.onended = () => { isDead = true; analyzerActive = false; activeNotes.forEach(n => n.el.remove()); activeNotes = []; showOverlay("¡Completado!", false); setTimeout(() => goHome(), 3000); };
@@ -815,7 +829,19 @@
             comboEl.textContent = combo;
         }
 
-        function loseLife() { if(isDead) return; lives--; updateLivesUI(); updateStatus('Miss', '#ff4757'); combo = 0; comboEl.textContent = "0"; if(lives <= 0) { isDead = true; analyzerActive = false; audio.pause(); showOverlay("Game Over", false); } }
+        function loseLife() { 
+            if(isDead) return;
+            const song = songs[selectedSongIndex];
+            if(!song.death) {
+                lives--; 
+                updateLivesUI(); 
+                if(lives <= 0) { isDead = true; analyzerActive = false; audio.pause(); showOverlay("Game Over", false); } 
+            }
+            updateStatus('Miss', '#ff4757'); 
+            combo = 0; 
+            comboEl.textContent = "0"; 
+        }
+
         function updateLivesUI() { const hearts = document.querySelectorAll('.life-heart'); hearts.forEach((h, i) => h.style.opacity = i < lives ? '1' : '0.1'); }
         function togglePause() { if(isDead) return; isPaused = !isPaused; if(isPaused) audio.pause(); else audio.play(); if(isPaused) showOverlay("Pausa", true); else overlay.style.display = 'none'; activeNotes.forEach(n => n.el.style.animationPlayState = isPaused ? 'paused' : 'running'); }
         function showOverlay(title, showControls) { overlay.style.display = 'flex'; document.getElementById('overlay-title').textContent = title; document.getElementById('resume-btn').style.display = showControls ? 'flex' : 'none'; document.getElementById('settings-btn').style.display = showControls ? 'flex' : 'none'; document.getElementById('restart-btn').textContent = showControls ? "Reiniciar" : "Reintentar (Enter)"; }
