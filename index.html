@@ -16,11 +16,10 @@
         }
 
         :root {
-            --bg: #05050a;
+            --bg: #020205;
             --accent: #ffffff;
-            --glass: rgba(255, 255, 255, 0.03);
-            --glass-hover: rgba(255, 255, 255, 0.08);
-            --border: rgba(255, 255, 255, 0.1);
+            --glass: rgba(255, 255, 255, 0.05);
+            --border: rgba(255, 255, 255, 0.12);
             --k1: #ff4757;
             --k2: #3742fa;
             --k3: #2ed573;
@@ -37,84 +36,66 @@
             display: flex;
         }
 
-        #pc-brand {
-            position: fixed;
-            top: 25px;
-            left: 30px;
-            font-size: 1.8rem;
-            font-weight: 700;
-            z-index: 1000;
-            background: linear-gradient(180deg, #fff 0%, #888 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            display: none;
-        }
-
-        @media (min-width: 1025px) {
-            #pc-brand { display: block; }
-        }
-
         #main-menu {
             position: fixed;
             inset: 0;
             z-index: 100;
             display: flex;
-            background: radial-gradient(circle at 50% 50%, #10101a 0%, #05050a 100%);
+            background: radial-gradient(circle at 50% 50%, #0f0f1a 0%, #020205 100%);
             transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.6s;
         }
 
         .sidebar {
-            width: 320px;
+            width: 400px;
             height: 100%;
-            padding: 40px;
+            padding: 60px;
             display: flex;
             flex-direction: column;
-            background: rgba(0,0,0,0.4);
-            backdrop-filter: blur(40px);
+            justify-content: center;
+            background: rgba(0,0,0,0.6);
+            backdrop-filter: blur(30px);
             border-right: 1px solid var(--border);
             z-index: 2;
         }
 
         .logo-main {
-            font-size: 3.5rem;
+            font-size: 4.5rem;
             font-weight: 700;
             letter-spacing: -2px;
             background: linear-gradient(180deg, #fff 0%, #777 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
-            margin-bottom: 50px;
-            text-align: center;
+            margin-bottom: 40px;
         }
 
         .nav-menu {
             display: flex;
             flex-direction: column;
-            gap: 12px;
+            gap: 15px;
         }
 
         .nav-item {
             display: flex;
             align-items: center;
             gap: 15px;
-            padding: 16px 20px;
-            border-radius: 16px;
+            padding: 20px;
+            border-radius: 20px;
             background: var(--glass);
             border: 1px solid var(--border);
-            color: #888;
-            font-size: 1rem;
+            color: #aaa;
+            font-size: 1.1rem;
             font-weight: 600;
             cursor: pointer;
-            transition: all 0.3s;
+            transition: all 0.4s;
             text-decoration: none;
         }
 
-        .nav-item svg { width: 22px; height: 22px; fill: currentColor; }
+        .nav-item svg { width: 24px; height: 24px; fill: currentColor; }
 
         .nav-item:hover, .nav-item.active {
             background: var(--accent);
             color: #000;
-            transform: translateX(8px);
-            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+            transform: translateX(10px);
         }
 
         #song-selection {
@@ -122,130 +103,52 @@
             height: 100%;
             display: flex;
             flex-direction: column;
-            padding: 50px 60px;
-            background: transparent;
+            padding: 60px;
+            background: rgba(255,255,255,0.02);
             overflow: hidden;
-            animation: fadeInRight 0.8s ease-out;
         }
 
-        @keyframes fadeInRight {
-            from { opacity: 0; transform: translateX(30px); }
-            to { opacity: 1; transform: translateX(0); }
-        }
-
-        .selection-header {
-            margin-bottom: 35px;
-        }
-
-        .selection-header h2 {
-            font-size: 2.2rem;
-            font-weight: 700;
-            margin-bottom: 8px;
-        }
-
-        .selection-header p {
-            color: #666;
-            font-size: 1rem;
-        }
-
-        .song-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-            gap: 20px;
+        .song-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            width: 100%;
             overflow-y: auto;
-            padding-right: 15px;
+            padding-right: 10px;
             scrollbar-width: thin;
             scrollbar-color: var(--border) transparent;
         }
 
-        .song-grid::-webkit-scrollbar { width: 6px; }
-        .song-grid::-webkit-scrollbar-thumb { background: var(--border); border-radius: 10px; }
+        .song-list::-webkit-scrollbar { width: 6px; }
+        .song-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 10px; }
 
         .song-card {
             background: var(--glass);
             border: 1px solid var(--border);
-            padding: 25px;
-            border-radius: 24px;
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-            cursor: pointer;
-            transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
-            position: relative;
-            overflow: hidden;
-        }
-
-        .song-card::before {
-            content: '';
-            position: absolute;
-            inset: 0;
-            background: linear-gradient(45deg, transparent, rgba(255,255,255,0.05));
-            opacity: 0;
-            transition: 0.4s;
-        }
-
-        .song-card:hover {
-            background: var(--glass-hover);
-            border-color: rgba(255,255,255,0.3);
-            transform: translateY(-5px);
-        }
-
-        .song-card:hover::before { opacity: 1; }
-
-        .song-card.active-selection {
-            border-color: var(--accent);
-            background: rgba(255,255,255,0.1);
-        }
-
-        .song-visual {
-            width: 50px;
-            height: 50px;
-            background: rgba(255,255,255,0.1);
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-bottom: 5px;
-        }
-
-        .song-visual svg { width: 24px; height: 24px; fill: #fff; }
-
-        .song-info h3 { 
-            font-size: 1.15rem; 
-            font-weight: 700;
-            margin-bottom: 5px;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        .song-info p { color: #888; font-size: 0.85rem; margin-bottom: 12px; }
-        
-        .song-meta {
+            padding: 18px 25px;
+            border-radius: 18px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-top: auto;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.23, 1, 0.32, 1);
         }
 
-        .duration-tag {
-            font-size: 0.75rem;
-            color: #555;
-            background: rgba(0,0,0,0.3);
-            padding: 4px 10px;
-            border-radius: 20px;
+        .song-card:hover {
+            background: rgba(255,255,255,0.1);
+            border-color: #fff;
+            transform: translateX(5px);
         }
 
-        .best-score { 
-            font-size: 0.8rem; 
-            color: #2ed573; 
-            font-weight: 600;
-        }
-
-        .tag-row {
-            display: flex;
-            gap: 8px;
-            flex-wrap: wrap;
+        .song-info h3 { font-size: 1.1rem; margin-bottom: 3px; display: flex; align-items: center; gap: 10px; }
+        .song-info p { color: #888; font-size: 0.8rem; }
+        .song-info .best-score { font-size: 0.75rem; color: #2ed573; margin-top: 4px; display: block; }
+        
+        .mission-icon {
+            width: 18px;
+            height: 18px;
+            fill: #eab000;
+            filter: drop-shadow(0 0 5px rgba(234, 176, 0, 0.5));
         }
 
         #mobile-play-btn {
@@ -552,48 +455,6 @@
             text-shadow: 0 0 30px currentColor;
         }
 
-        /* --- NUEVOS ESTILOS PARA CARGA Y PARTÍCULAS --- */
-        #loading-screen {
-            position: fixed;
-            inset: 0;
-            background: #000;
-            z-index: 5000;
-            display: none;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-        }
-
-        .load-bar-outer {
-            width: 250px;
-            height: 4px;
-            background: var(--border);
-            border-radius: 10px;
-            overflow: hidden;
-            margin-top: 20px;
-        }
-
-        .load-bar-inner {
-            width: 0%;
-            height: 100%;
-            background: #fff;
-            box-shadow: 0 0 15px #fff;
-            transition: width 0.3s ease;
-        }
-
-        .hit-particle {
-            position: absolute;
-            pointer-events: none;
-            border-radius: 50%;
-            z-index: 100;
-            animation: particleOut 0.5s ease-out forwards;
-        }
-
-        @keyframes particleOut {
-            0% { transform: translate(0, 0) scale(1); opacity: 1; }
-            100% { transform: translate(var(--tx), var(--ty)) scale(0); opacity: 0; }
-        }
-
         @keyframes noteFall {
             from { transform: translateY(-100px); }
             to { transform: translateY(calc(100vh + 100px)); }
@@ -601,28 +462,18 @@
 
         @media (max-width: 1024px) {
             #main-menu { flex-direction: column; }
-            .sidebar { width: 100%; height: auto; padding: 30px; border-right: none; border-bottom: 1px solid var(--border); background: rgba(0,0,0,0.8); }
+            .sidebar { width: 100%; height: auto; padding: 40px; border-right: none; border-bottom: 1px solid var(--border); background: rgba(0,0,0,0.8); }
             #song-selection { display: none !important; }
-            .logo-main { font-size: 2.5rem; margin-bottom: 20px; }
+            .logo-main { font-size: 3rem; margin-bottom: 20px; }
             #mobile-play-btn { display: flex; }
             .game-track { width: 100%; border: none; }
             .slot { width: 22vw; height: 22vw; }
             .note { width: 18vw; height: 18vw; }
             #song-selection.mobile-active { display: flex !important; position: fixed; inset: 0; z-index: 110; background: #000; padding: 20px; }
-            .selection-header h2 { font-size: 1.8rem; }
         }
     </style>
 </head>
 <body>
-
-    <div id="pc-brand">OKAOs</div>
-
-    <div id="loading-screen">
-        <h2 style="font-weight: 700; font-size: 1.5rem; letter-spacing: 2px;">CARGANDO TRACK</h2>
-        <div class="load-bar-outer">
-            <div id="load-bar-fill" class="load-bar-inner"></div>
-        </div>
-    </div>
 
     <audio id="game-audio" preload="auto" crossorigin="anonymous"></audio>
 
@@ -646,11 +497,8 @@
         </div>
 
         <div id="song-selection">
-            <div class="selection-header">
-                <h2>Lista de Canciones</h2>
-                <p>Selecciona un track para comenzar el ritmo</p>
-            </div>
-            <div class="song-grid" id="main-song-list"></div>
+            <h2 class="settings-title" style="text-align: left; margin-bottom: 20px;">Lista de Canciones</h2>
+            <div class="song-list" id="main-song-list"></div>
             <button class="btn-s btn-cancel mobile-only" style="margin-top:30px; display: none;" onclick="hideMobileSongs()">Cerrar</button>
         </div>
     </div>
@@ -769,8 +617,6 @@
         const progressBar = document.getElementById('progress-bar');
         const settingsPanel = document.getElementById('settings-panel');
         const livesUI = document.getElementById('lives-ui');
-        const loadingScreen = document.getElementById('loading-screen');
-        const loadBarFill = document.getElementById('load-bar-fill');
         
         const songs = [
             { id: 0, name: "Puertas", artist: "El Cuarteto de Nos", path: "music/puertas.mp3", duration: 228, diff: 180 },
@@ -780,8 +626,7 @@
             { id: 4, name: "Adoウタカタララバイウタ ONE PIECE", artist: "Ado", path: "music/onepiece.mp3", duration: 193, diff: 135 },
             { id: 5, name: "Big Metra Pañuelito Rojo", artist: "Big Metra", path: "music/bigmetra.mp3", duration: 216, diff: 110, boosted: true },
             { id: 6, name: "BIG METRA - TRATO DE NO TRABARME", artist: "Big Metra", path: "music/bigmetra2.mp3", duration: 228, diff: 85, death: true, mission: true },
-            { id: 7, name: "PUPPET VS TAILS DOLL RAP", artist: "Kronno Zomber & Cyclo Ft. Punyaso", path: "music/puppet.mp3", duration: 285, diff: 130, boosted: true },
-            { id: 8, name: "【Ado】アイ・アイ・ア（AiAiA)", artist: "Ado", path: "music/aiaia.mp3", duration: 259, diff: 145 }
+            { id: 7, name: "PUPPET VS TAILS DOLL RAP", artist: "Kronno Zomber & Cyclo Ft. Punyaso", path: "music/puppet.mp3", duration: 285, diff: 130, boosted: true }
         ];
 
         let selectedSongIndex = 0;
@@ -790,6 +635,7 @@
         let score = 0;
         let perfects = 0;
         let misses = 0;
+        let totalNotesSpawned = 0;
         let lives = 3;
         let isPaused = false;
         let isDead = false;
@@ -823,27 +669,24 @@
             songs.forEach((s, i) => {
                 const compData = completions[s.id];
                 const card = document.createElement('div');
-                card.className = `song-card`;
+                card.className = `song-card ${compData ? 'completed' : ''}`;
                 card.onclick = () => selectSong(i);
                 
-                let tags = '';
-                if(s.death) tags += '<span style="background:red; color:white; padding:2px 8px; border-radius:10px; font-size:0.6rem; font-weight:700;">MURDER</span>';
-                else if(s.boosted) tags += '<span style="background:#00d2ff; color:white; padding:2px 8px; border-radius:10px; font-size:0.6rem; font-weight:700;">BOOST</span>';
-                if(s.mission) tags += '<svg style="width:14px; height:14px; fill:#eab000;" viewBox="0 0 24 24"><path d="M12 1L9 9H1L7 14L4 22L12 17L20 22L17 14L25 9H15L12 1Z"/></svg>';
+                let diffHtml = '';
+                if(s.death) diffHtml = '<span class="diff-tag" style="background:red; color:white; padding:2px 6px; border-radius:4px; font-size:0.6rem;">Muerte</span>';
+                else if(s.boosted) diffHtml = '<span class="diff-tag" style="background:#00d2ff; color:white; padding:2px 6px; border-radius:4px; font-size:0.6rem;">Boost</span>';
+
+                let missionHtml = s.mission ? `<svg class="mission-icon" viewBox="0 0 24 24"><path d="M12 1L9 9H1L7 14L4 22L12 17L20 22L17 14L25 9H15L12 1Z"/></svg>` : '';
 
                 card.innerHTML = `
-                    <div class="song-visual">
-                        <svg viewBox="0 0 24 24"><path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/></svg>
-                    </div>
                     <div class="song-info">
-                        <h3>${s.name}</h3>
-                        <p>${s.artist}</p>
-                        <div class="tag-row">${tags}</div>
+                        <h3>${s.name} ${diffHtml} ${missionHtml}</h3>
+                        <p>${s.artist} • ${Math.floor(s.duration/60)}:${(s.duration%60).toString().padStart(2,'0')}</p>
+                        ${compData ? `<span class="best-score">Mejor: ${compData.score} pts (${compData.grade})</span>` : ''}
                     </div>
-                    <div class="song-meta">
-                        <span class="duration-tag">${Math.floor(s.duration/60)}:${(s.duration%60).toString().padStart(2,'0')}</span>
-                        ${compData ? `<span class="best-score">${compData.grade} ${compData.score}</span>` : ''}
-                    </div>
+                    <svg viewBox="0 0 24 24" width="24" height="24" fill="white" style="opacity:0.5">
+                        <path d="M8 5v14l11-7z"/>
+                    </svg>
                 `;
                 list.appendChild(card);
             });
@@ -909,30 +752,7 @@
                 dataArray = new Uint8Array(analyzer.frequencyBinCount);
             }
             if (audioCtx.state === 'suspended') audioCtx.resume();
-
-            // Lógica de carga antes de la secuencia
-            if(type === 'play' || type === 'restart') {
-                menu.style.opacity = '0';
-                loadingScreen.style.display = 'flex';
-                let progress = 0;
-                const loadInterval = setInterval(() => {
-                    progress += Math.random() * 15;
-                    if(progress >= 100) {
-                        progress = 100;
-                        clearInterval(loadInterval);
-                        setTimeout(() => {
-                            loadingScreen.style.display = 'none';
-                            audio.play().then(() => { 
-                                audio.pause(); 
-                                audio.currentTime = 0; 
-                                if (type === 'play') startSequence(); 
-                                else if (type === 'restart') restartGame(); 
-                            });
-                        }, 500);
-                    }
-                    loadBarFill.style.width = progress + '%';
-                }, 100);
-            }
+            audio.play().then(() => { audio.pause(); audio.currentTime = 0; if (type === 'play') startSequence(); else if (type === 'restart') restartGame(); }).catch(() => { if (type === 'play') startSequence(); else if (type === 'restart') restartGame(); });
         }
 
         function analyzeLoop() {
@@ -951,17 +771,13 @@
             currentFallSpeed = song.death ? 1.4 : (song.boosted ? Math.max(0.9, 1.8 - (energy / 80)) : Math.max(1.1, 2.8 - (energy / 60)));
             
             const now = Date.now();
-            if (bassIntensity > song.diff && (now - lastBeatTime) > (song.death ? 75 : (song.boosted ? 110 : 250))) { 
+            if (bassIntensity > song.diff && (now - lastBeatTime) > (song.death ? 120 : (song.boosted ? 150 : 250))) { 
                 lastBeatTime = now; 
                 spawnNote(Math.floor(Math.random() * 4)); 
             }
         }
 
-        function startSequence() { 
-            menu.style.display = 'none'; 
-            intro.style.display = 'flex'; 
-            runIntro(); 
-        }
+        function startSequence() { menu.style.opacity = '0'; setTimeout(() => { menu.style.display = 'none'; intro.style.display = 'flex'; runIntro(); }, 600); }
 
         async function runIntro() {
             const song = songs[selectedSongIndex];
@@ -984,7 +800,7 @@
             const song = songs[selectedSongIndex];
             isDead = false; isPaused = false; 
             lives = song.death ? 1 : 3; 
-            combo = 0; maxCombo = 0; score = 0; perfects = 0; misses = 0;
+            combo = 0; maxCombo = 0; score = 0; perfects = 0; misses = 0; totalNotesSpawned = 0;
             activeNotes.forEach(n => n.el.remove()); activeNotes = []; 
             comboEl.textContent = "0"; progressBar.style.width = '0%'; 
             overlay.style.display = 'none';
@@ -995,12 +811,15 @@
         audio.onended = () => { isDead = true; analyzerActive = false; showResults(); };
 
         function showResults() {
-            const acc = (perfects / (perfects + misses || 1)) * 100;
+            const totalActions = perfects + misses;
+            const acc = (perfects / (totalActions || 1)) * 100;
             let grade = 'F', color = '#ff4757';
-            if(acc >= 95) { grade = 'SS'; color = '#eab000'; }
-            else if(acc >= 90) { grade = 'S'; color = '#00d2ff'; }
-            else if(acc >= 80) { grade = 'A'; color = '#2ed573'; }
-            else if(acc >= 60) { grade = 'B'; color = '#3742fa'; }
+            
+            if (acc >= 98) { grade = 'SS'; color = '#eab000'; }
+            else if (acc >= 90) { grade = 'S'; color = '#00d2ff'; }
+            else if (acc >= 80) { grade = 'A'; color = '#2ed573'; }
+            else if (acc >= 70) { grade = 'B'; color = '#3742fa'; }
+            else if (acc >= 50) { grade = 'C'; color = '#888'; }
 
             document.getElementById('res-grade').textContent = grade;
             document.getElementById('res-grade').style.color = color;
@@ -1025,6 +844,7 @@
 
         function spawnNote(lane) {
             if (isDead || isPaused) return;
+            totalNotesSpawned++;
             const n = document.createElement('div');
             n.className = 'note';
             n.innerHTML = icons[lane];
@@ -1035,52 +855,46 @@
             track.appendChild(n);
             const obj = { el: n, lane, hit: false, id: Math.random() };
             activeNotes.push(obj);
-            n.addEventListener('animationend', () => { if(!obj.hit && !isPaused && !isDead) loseLife(); n.remove(); activeNotes = activeNotes.filter(x => x.id !== obj.id); });
-        }
-
-        // --- SISTEMA DE PARTÍCULAS ---
-        function createHitParticles(x, y, color) {
-            for(let i=0; i<8; i++) {
-                const p = document.createElement('div');
-                p.className = 'hit-particle';
-                const size = Math.random() * 8 + 4;
-                p.style.width = size + 'px';
-                p.style.height = size + 'px';
-                p.style.background = color;
-                p.style.left = x + 'px';
-                p.style.top = y + 'px';
-                
-                const tx = (Math.random() - 0.5) * 150;
-                const ty = (Math.random() - 0.5) * 150;
-                p.style.setProperty('--tx', tx + 'px');
-                p.style.setProperty('--ty', ty + 'px');
-                
-                track.appendChild(p);
-                setTimeout(() => p.remove(), 600);
-            }
+            n.addEventListener('animationend', () => { 
+                if(!obj.hit && !isPaused && !isDead) {
+                    loseLife();
+                } 
+                n.remove(); 
+                activeNotes = activeNotes.filter(x => x.id !== obj.id); 
+            });
         }
 
         function handleSlotInput(lane, event) {
             if(event) { event.preventDefault(); }
             if(isPaused || isDead) return;
             const s = document.getElementById(`s${lane}`);
-            s.classList.add('pressed'); setTimeout(() => s.classList.remove('pressed'), 60);
+            s.classList.add('pressed'); setTimeout(() => s.classList.remove('pressed'), 80);
+            
             const sRect = s.getBoundingClientRect();
             const sY = sRect.top + (sRect.height / 2);
             let hitFound = false;
+
             for(let i = 0; i < activeNotes.length; i++) {
                 const n = activeNotes[i];
                 if(n.lane === lane && !n.hit) {
                     const nRect = n.el.getBoundingClientRect();
                     const nY = nRect.top + (nRect.height / 2);
                     const d = Math.abs(nY - sY);
-                    if(d < 100) {
-                        hitFound = true; n.hit = true; n.el.style.display = 'none';
-                        const particleColor = lane === 0 ? 'var(--k1)' : lane === 1 ? 'var(--k2)' : lane === 2 ? 'var(--k3)' : 'var(--k4)';
-                        createHitParticles(nRect.left + 30, nRect.top + 30, particleColor);
-                        
-                        if(d < 45) { combo++; score += (100 * (1 + combo * 0.1)); perfects++; updateStatus('Perfect', '#00ffcc'); }
-                        else { combo++; score += 50; updateStatus('Bien', '#ffcc00'); }
+                    
+                    if(d < 85) {
+                        hitFound = true; 
+                        n.hit = true; 
+                        n.el.style.display = 'none';
+                        if(d < 40) { 
+                            combo++; 
+                            score += (100 * (1 + combo * 0.05)); 
+                            perfects++; 
+                            updateStatus('Perfect', '#00ffcc'); 
+                        } else { 
+                            combo++; 
+                            score += 40; 
+                            updateStatus('Bien', '#ffcc00'); 
+                        }
                         if(combo > maxCombo) maxCombo = combo;
                         break;
                     }
@@ -1092,10 +906,19 @@
 
         function loseLife() { 
             if(isDead) return;
-            lives--; misses++;
+            lives--; 
+            misses++;
             updateLivesUI(); 
-            if(lives <= 0) { isDead = true; analyzerActive = false; audio.pause(); showResults(); document.getElementById('overlay-title').textContent = "Game Over"; } 
-            updateStatus('Miss', '#ff4757'); combo = 0; comboEl.textContent = "0"; 
+            if(lives <= 0) { 
+                isDead = true; 
+                analyzerActive = false; 
+                audio.pause(); 
+                showResults(); 
+                document.getElementById('overlay-title').textContent = "Game Over"; 
+            } 
+            updateStatus('Miss', '#ff4757'); 
+            combo = 0; 
+            comboEl.textContent = "0"; 
         }
 
         function updateLivesUI() { 
@@ -1107,7 +930,16 @@
             }
         }
 
-        function togglePause() { if(isDead) return; isPaused = !isPaused; if(isPaused) audio.pause(); else audio.play(); overlay.style.display = isPaused ? 'flex' : 'none'; document.getElementById('results-container').style.display = 'none'; document.getElementById('resume-btn').style.display = 'flex'; activeNotes.forEach(n => n.el.style.animationPlayState = isPaused ? 'paused' : 'running'); }
+        function togglePause() { 
+            if(isDead) return; 
+            isPaused = !isPaused; 
+            if(isPaused) audio.pause(); else audio.play(); 
+            overlay.style.display = isPaused ? 'flex' : 'none'; 
+            document.getElementById('results-container').style.display = 'none'; 
+            document.getElementById('resume-btn').style.display = 'flex'; 
+            activeNotes.forEach(n => n.el.style.animationPlayState = isPaused ? 'paused' : 'running'); 
+        }
+
         function restartGame() { initGame(); audio.currentTime = 0; audio.play(); analyzerActive = true; analyzeLoop(); }
         function goHome() { location.reload(); }
         function updateStatus(t, c) { statusEl.textContent = t; statusEl.style.color = c; statusEl.style.opacity = '1'; setTimeout(() => statusEl.style.opacity = '0', 400); }
