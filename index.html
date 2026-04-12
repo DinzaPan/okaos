@@ -64,7 +64,7 @@
             display: flex;
             flex-direction: column;
             gap: 15px;
-            z-index: 10;
+            z-index: 100;
         }
 
         .menu-bar {
@@ -82,13 +82,13 @@
             animation: bounceInLeft 0.8s cubic-bezier(0.2, 1, 0.3, 1) forwards;
         }
 
-        .menu-bar:hover {
+        .menu-bar:hover, .menu-bar.active {
             background: var(--accent);
             color: #000;
             width: 340px;
         }
 
-        #right-song-container {
+        #right-song-container, #right-settings-container {
             position: fixed;
             right: 0;
             display: flex;
@@ -97,15 +97,16 @@
             z-index: 10;
             height: 85vh;
             overflow-y: auto;
-            padding: 20px 0 20px 0;
+            padding: 20px 0;
             scrollbar-width: none;
             touch-action: pan-y;
             align-items: flex-end;
+            transition: 0.5s;
         }
 
-        #right-song-container::-webkit-scrollbar { display: none; }
+        #right-song-container::-webkit-scrollbar, #right-settings-container::-webkit-scrollbar { display: none; }
 
-        .song-bar {
+        .song-bar, .setting-item {
             background: rgba(255, 255, 255, 0.03);
             border: 1px solid var(--border);
             border-right: none;
@@ -117,11 +118,17 @@
             align-items: center;
             justify-content: space-between;
             transition: 0.5s cubic-bezier(0.2, 1, 0.3, 1);
-            transform: translateX(0);
-            animation: bounceInRight 0.8s cubic-bezier(0.2, 1, 0.3, 1) forwards;
             backdrop-filter: blur(10px);
-            margin-right: 0;
             position: relative;
+        }
+
+        .song-bar.exit, .setting-item.exit {
+            transform: translateX(120%) !important;
+            opacity: 0;
+        }
+
+        .song-bar.enter, .setting-item.enter {
+            animation: bounceInRight 0.8s cubic-bezier(0.2, 1, 0.3, 1) forwards;
         }
 
         .song-bar.boosted {
@@ -144,7 +151,7 @@
             box-shadow: 0 0 15px var(--boost);
         }
 
-        .song-bar:hover, .song-bar.selected {
+        .song-bar:hover, .setting-item:hover {
             background: rgba(255, 255, 255, 0.1);
             width: 660px;
             border-color: rgba(255, 255, 255, 0.5);
@@ -168,123 +175,38 @@
             animation: spin 4s linear infinite;
         }
 
-        .song-info { text-align: right; }
-        .song-info h3 { font-size: 1.8rem; margin-bottom: 5px; }
-        .song-info p { font-size: 1.1rem; opacity: 0.7; }
-
-        .diff-badge {
-            background: var(--glass);
-            border: 1px solid var(--border);
-            padding: 4px 12px;
-            border-radius: 10px;
-            font-size: 0.8rem;
-            margin-top: 8px;
-            display: inline-block;
-        }
-
-        @keyframes bounceInLeft { from { transform: translateX(-100%); } to { transform: translateX(0); } }
-        @keyframes bounceInRight { from { transform: translateX(100%); } to { transform: translateX(0); } }
-        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-
-        #overlay-settings {
-            position: fixed;
-            inset: 0;
-            background: rgba(0,0,0,0.9);
-            display: none;
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
-            backdrop-filter: blur(10px);
-        }
-
-        .settings-card {
-            background: #0d0d15;
-            padding: 40px;
-            border-radius: 40px;
-            border: 1px solid var(--border);
-            width: 550px;
-            text-align: center;
-        }
+        .song-info, .setting-info { text-align: right; }
+        .song-info h3, .setting-info h3 { font-size: 1.8rem; margin-bottom: 5px; }
+        .song-info p, .setting-info p { font-size: 1.1rem; opacity: 0.7; }
 
         .key-config-grid {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
-            gap: 15px;
-            margin: 20px 0;
+            gap: 10px;
+            margin-top: 10px;
         }
 
         .key-input {
             background: var(--glass);
-            border: 2px solid var(--border);
-            border-radius: 15px;
-            padding: 15px 0;
-            font-size: 1.5rem;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 10px 15px;
+            font-size: 1.2rem;
             font-weight: 700;
-            cursor: pointer;
-            transition: 0.3s;
             color: #fff;
-            text-transform: uppercase;
+            text-align: center;
         }
 
         .key-input.waiting {
             border-color: #fff;
-            box-shadow: 0 0 15px rgba(255,255,255,0.3);
             animation: pulse 1s infinite;
         }
 
-        @keyframes pulse {
-            0% { opacity: 1; }
-            50% { opacity: 0.5; }
-            100% { opacity: 1; }
-        }
+        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
 
-        .action-btn {
-            width: 100%;
-            padding: 18px;
-            border-radius: 20px;
-            border: none;
-            background: #fff;
-            color: #000;
-            font-size: 1.1rem;
-            font-weight: 700;
-            cursor: pointer;
-            margin-top: 10px;
-            transition: transform 0.2s;
-        }
-
-        .action-btn:active { transform: scale(0.95); }
-        .action-btn.secondary { background: rgba(255,255,255,0.1); color: #fff; border: 1px solid var(--border); }
-
-        #intro-layer {
-            position: fixed;
-            inset: 0;
-            z-index: 2000;
-            background: #000;
-            display: none;
-            justify-content: center;
-            align-items: center;
-            flex-direction: column;
-        }
-
-        .intro-hearts { display: flex; gap: 20px; margin-bottom: 30px; }
-
-        .intro-heart {
-            width: 60px;
-            height: 60px;
-            fill: #ff4757;
-            opacity: 0;
-            transform: scale(0);
-            transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        }
-
-        .intro-text {
-            font-size: 3rem;
-            font-weight: 700;
-            text-align: center;
-            opacity: 0;
-            transform: translateY(20px);
-            transition: all 0.4s ease;
-        }
+        @keyframes bounceInLeft { from { transform: translateX(-100%); } to { transform: translateX(0); } }
+        @keyframes bounceInRight { from { transform: translateX(100%); } to { transform: translateX(0); } }
+        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
 
         #game-canvas {
             display: none;
@@ -456,6 +378,54 @@
         .star { color: rgba(255, 255, 255, 0.1); transition: 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
         .star.active { color: #ffd700; text-shadow: 0 0 40px #ffd700; transform: scale(1.2); }
 
+        #intro-layer {
+            position: fixed;
+            inset: 0;
+            z-index: 2000;
+            background: #000;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+
+        .intro-hearts { display: flex; gap: 20px; margin-bottom: 30px; }
+
+        .intro-heart {
+            width: 60px;
+            height: 60px;
+            fill: #ff4757;
+            opacity: 0;
+            transform: scale(0);
+            transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .intro-text {
+            font-size: 3rem;
+            font-weight: 700;
+            text-align: center;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.4s ease;
+        }
+
+        .action-btn {
+            width: 100%;
+            padding: 18px;
+            border-radius: 20px;
+            border: none;
+            background: #fff;
+            color: #000;
+            font-size: 1.1rem;
+            font-weight: 700;
+            cursor: pointer;
+            margin-top: 10px;
+            transition: transform 0.2s;
+        }
+
+        .action-btn:active { transform: scale(0.95); }
+        .action-btn.secondary { background: rgba(255,255,255,0.1); color: #fff; border: 1px solid var(--border); }
+
     </style>
 </head>
 <body>
@@ -464,28 +434,38 @@
     
     <div id="main-ui">
         <div id="left-bar-container">
-            <div class="menu-bar" style="animation-delay: 0.1s;" onclick="location.reload()">Inicio</div>
+            <div id="btn-inicio" class="menu-bar active" style="animation-delay: 0.1s;" onclick="showMainView()">Inicio</div>
             <div class="menu-bar" style="animation-delay: 0.2s;">Perfil</div>
             <div class="menu-bar" style="animation-delay: 0.3s;">Misiones</div>
-            <div class="menu-bar" style="animation-delay: 0.4s;" onclick="toggleSettings(true)">Ajustes</div>
+            <div id="btn-ajustes" class="menu-bar" style="animation-delay: 0.4s;" onclick="showSettingsView()">Ajustes</div>
         </div>
         <div id="right-song-container"></div>
-    </div>
-
-    <div id="overlay-settings">
-        <div class="settings-card">
-            <h2 style="margin-bottom: 10px;">Configuración</h2>
-            <div class="key-config-grid">
-                <div class="key-input" id="cfg-0" onclick="startKeyCapture(0)">A</div>
-                <div class="key-input" id="cfg-1" onclick="startKeyCapture(1)">S</div>
-                <div class="key-input" id="cfg-2" onclick="startKeyCapture(2)">K</div>
-                <div class="key-input" id="cfg-3" onclick="startKeyCapture(3)">L</div>
+        <div id="right-settings-container" style="display: none;">
+            <div class="setting-item enter">
+                <div class="setting-info">
+                    <h3>Controles</h3>
+                    <p>Configura tus teclas de juego</p>
+                    <div class="key-config-grid">
+                        <div class="key-input" id="cfg-0" onclick="startKeyCapture(0)">A</div>
+                        <div class="key-input" id="cfg-1" onclick="startKeyCapture(1)">S</div>
+                        <div class="key-input" id="cfg-2" onclick="startKeyCapture(2)">K</div>
+                        <div class="key-input" id="cfg-3" onclick="startKeyCapture(3)">L</div>
+                    </div>
+                </div>
             </div>
-            <div style="margin-bottom: 30px;">
-                <p style="color:#888; margin-bottom:10px;">Volumen Maestro</p>
-                <input type="range" id="vol-range" min="0" max="1" step="0.1" value="1" style="width:100%;">
+            <div class="setting-item enter" style="animation-delay: 0.1s;">
+                <div class="setting-info">
+                    <h3>Audio</h3>
+                    <p>Volumen Maestro</p>
+                    <input type="range" id="vol-range" min="0" max="1" step="0.1" value="1" style="width:100%; margin-top:15px;" oninput="updateVolume(this.value)">
+                </div>
             </div>
-            <button class="action-btn" onclick="saveAndCloseSettings()">GUARDAR CAMBIOS</button>
+            <div class="setting-item enter" style="animation-delay: 0.2s;" onclick="saveLocalSettings()">
+                <div class="setting-info">
+                    <h3>Guardar</h3>
+                    <p>Aplicar todos los cambios</p>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -575,30 +555,13 @@
         let lastSpawn = 0, spawnCooldown = 120;
         const audio = document.getElementById('game-audio');
 
-        function loadSavedSettings() {
-            const savedKeys = localStorage.getItem('okao_keys');
-            const savedVol = localStorage.getItem('okao_vol');
-            if (savedKeys) {
-                gameKeys = JSON.parse(savedKeys);
-                gameKeys.forEach((k, i) => document.getElementById(`cfg-${i}`).textContent = k);
-            }
-            if (savedVol) {
-                audio.volume = savedVol;
-                document.getElementById('vol-range').value = savedVol;
-            }
-        }
-
-        function saveAndCloseSettings() {
-            localStorage.setItem('okao_keys', JSON.stringify(gameKeys));
-            localStorage.setItem('okao_vol', audio.volume);
-            toggleSettings(false);
-        }
-
         function initSongList() {
             const container = document.getElementById('right-song-container');
+            container.innerHTML = '';
             songs.forEach((s, i) => {
                 const bar = document.createElement('div');
-                bar.className = `song-bar ${s.boosted ? 'boosted' : ''}`;
+                bar.className = `song-bar enter`;
+                bar.style.animationDelay = `${i * 0.05}s`;
                 bar.onclick = () => startSequence(i);
                 bar.innerHTML = `
                     ${s.boosted ? '<div class="boost-tag">POTENCIADO</div>' : ''}
@@ -615,12 +578,68 @@
             });
         }
 
-        function toggleSettings(s) { document.getElementById('overlay-settings').style.display = s ? 'flex' : 'none'; }
+        async function showSettingsView() {
+            document.getElementById('btn-inicio').classList.remove('active');
+            document.getElementById('btn-ajustes').classList.add('active');
+            
+            const bars = document.querySelectorAll('.song-bar');
+            for(let i = bars.length - 1; i >= 0; i--) {
+                bars[i].classList.add('exit');
+                await new Promise(r => setTimeout(r, 50));
+            }
+
+            setTimeout(() => {
+                document.getElementById('right-song-container').style.display = 'none';
+                document.getElementById('right-settings-container').style.display = 'flex';
+                const settings = document.querySelectorAll('.setting-item');
+                settings.forEach(s => s.classList.remove('exit'));
+            }, 400);
+        }
+
+        async function showMainView() {
+            document.getElementById('btn-ajustes').classList.remove('active');
+            document.getElementById('btn-inicio').classList.add('active');
+
+            const settings = document.querySelectorAll('.setting-item');
+            for(let i = settings.length - 1; i >= 0; i--) {
+                settings[i].classList.add('exit');
+                await new Promise(r => setTimeout(r, 50));
+            }
+
+            setTimeout(() => {
+                document.getElementById('right-settings-container').style.display = 'none';
+                document.getElementById('right-song-container').style.display = 'flex';
+                initSongList();
+            }, 400);
+        }
 
         function startKeyCapture(index) {
             captureIndex = index;
             document.querySelectorAll('.key-input').forEach(el => el.classList.remove('waiting'));
             document.getElementById(`cfg-${index}`).classList.add('waiting');
+        }
+
+        function updateVolume(val) {
+            audio.volume = val;
+        }
+
+        function saveLocalSettings() {
+            localStorage.setItem('okao_keys', JSON.stringify(gameKeys));
+            localStorage.setItem('okao_vol', audio.volume);
+            alert("Ajustes Guardados");
+        }
+
+        function loadSavedSettings() {
+            const savedKeys = localStorage.getItem('okao_keys');
+            const savedVol = localStorage.getItem('okao_vol');
+            if (savedKeys) {
+                gameKeys = JSON.parse(savedKeys);
+                gameKeys.forEach((k, i) => document.getElementById(`cfg-${i}`).textContent = k);
+            }
+            if (savedVol) {
+                audio.volume = savedVol;
+                document.getElementById('vol-range').value = savedVol;
+            }
         }
 
         async function startSequence(index) {
