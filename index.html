@@ -158,11 +158,43 @@
 
         .settings-card {
             background: #0d0d15;
-            padding: 60px;
+            padding: 40px;
             border-radius: 40px;
             border: 1px solid var(--border);
             width: 550px;
             text-align: center;
+        }
+
+        .key-config-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .key-input {
+            background: var(--glass);
+            border: 2px solid var(--border);
+            border-radius: 15px;
+            padding: 15px 0;
+            font-size: 1.5rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: 0.3s;
+            color: #fff;
+            text-transform: uppercase;
+        }
+
+        .key-input.waiting {
+            border-color: #fff;
+            box-shadow: 0 0 15px rgba(255,255,255,0.3);
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
         }
 
         .action-btn {
@@ -340,6 +372,7 @@
             flex-direction: column;
             align-items: center;
             pointer-events: none;
+            width: 100%;
         }
 
         #combo-text { font-size: 4rem; font-weight: 700; color: rgba(255,255,255,0.1); }
@@ -399,12 +432,21 @@
 
     <div id="overlay-settings">
         <div class="settings-card">
-            <h2 style="margin-bottom: 30px;">Ajustes</h2>
-            <div style="margin-bottom: 20px;">
+            <h2 style="margin-bottom: 10px;">Ajustes</h2>
+            <p style="color:#888; font-size:0.9rem; margin-bottom:20px;">Configura tus teclas favoritas</p>
+            
+            <div class="key-config-grid">
+                <div class="key-input" id="cfg-0" onclick="startKeyCapture(0)">A</div>
+                <div class="key-input" id="cfg-1" onclick="startKeyCapture(1)">S</div>
+                <div class="key-input" id="cfg-2" onclick="startKeyCapture(2)">K</div>
+                <div class="key-input" id="cfg-3" onclick="startKeyCapture(3)">L</div>
+            </div>
+
+            <div style="margin-bottom: 30px;">
                 <p style="color:#888; margin-bottom:10px;">Volumen</p>
                 <input type="range" id="vol-range" min="0" max="1" step="0.1" value="1" style="width:100%;">
             </div>
-            <button class="action-btn" onclick="toggleSettings(false)">CERRAR</button>
+            <button class="action-btn" onclick="toggleSettings(false)">GUARDAR Y CERRAR</button>
         </div>
     </div>
 
@@ -482,12 +524,13 @@
             '<svg viewBox="0 0 24 24"><path d="M4 11h12.17l-5.58-5.59L12 4l8 8-8 8-1.41-1.41L16.17 13H4v-2z" /></svg>'
         ];
 
+        let gameKeys = ['a', 's', 'k', 'l'];
+        let captureIndex = -1;
         let selectedSongIndex = 0;
         let combo = 0, maxCombo = 0, score = 0, perfects = 0, misses = 0, lives = 3, initialLives = 3;
         let isPaused = false, isDead = false, analyzerActive = false;
         let activeNotes = [];
         let audioCtx, analyzer, dataArray, source, lastBeatTime = 0;
-        const gameKeys = ['a', 's', 'k', 'l'];
         const audio = document.getElementById('game-audio');
 
         function initSongList() {
@@ -516,6 +559,13 @@
         }
 
         function toggleSettings(s) { document.getElementById('overlay-settings').style.display = s ? 'flex' : 'none'; }
+
+        function startKeyCapture(index) {
+            captureIndex = index;
+            document.querySelectorAll('.key-input').forEach(el => el.classList.remove('waiting'));
+            document.getElementById(`cfg-${index}`).classList.add('waiting');
+            document.getElementById(`cfg-${index}`).textContent = "...";
+        }
 
         async function startSequence(index) {
             selectedSongIndex = index;
@@ -698,7 +748,18 @@
         audio.onended = () => endGame(true);
 
         window.addEventListener('keydown', (e) => {
-            const idx = gameKeys.indexOf(e.key.toLowerCase());
+            const k = e.key.toLowerCase();
+            
+            if (captureIndex !== -1) {
+                gameKeys[captureIndex] = k;
+                const el = document.getElementById(`cfg-${captureIndex}`);
+                el.textContent = k;
+                el.classList.remove('waiting');
+                captureIndex = -1;
+                return;
+            }
+
+            const idx = gameKeys.indexOf(k);
             if(idx !== -1) handleInput(idx);
             if(e.key === 'Escape') togglePause();
         });
