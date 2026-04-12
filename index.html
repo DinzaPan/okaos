@@ -109,7 +109,7 @@
             width: 340px;
         }
 
-        #right-song-container, #right-settings-container, #right-missions-container {
+        #right-song-container, #right-settings-container, #right-missions-container, #right-profile-container {
             position: fixed;
             right: 0;
             display: flex;
@@ -125,9 +125,9 @@
             transition: 0.8s cubic-bezier(0.2, 1, 0.3, 1);
         }
 
-        #right-song-container::-webkit-scrollbar, #right-settings-container::-webkit-scrollbar, #right-missions-container::-webkit-scrollbar { display: none; }
+        #right-song-container::-webkit-scrollbar, #right-settings-container::-webkit-scrollbar, #right-missions-container::-webkit-scrollbar, #right-profile-container::-webkit-scrollbar { display: none; }
 
-        .song-bar, .setting-item, .mission-item {
+        .song-bar, .setting-item, .mission-item, .profile-card {
             background: rgba(255, 255, 255, 0.03);
             border: 1px solid var(--border);
             border-right: none;
@@ -143,6 +143,15 @@
             position: relative;
         }
 
+        .profile-card {
+            cursor: default;
+            flex-direction: column;
+            align-items: flex-end;
+            height: auto;
+            gap: 20px;
+            padding: 40px 40px 40px 60px;
+        }
+
         .mission-item {
             cursor: default;
         }
@@ -152,12 +161,12 @@
             background: rgba(46, 213, 115, 0.05);
         }
 
-        .song-bar.exit, .setting-item.exit, .mission-item.exit {
+        .song-bar.exit, .setting-item.exit, .mission-item.exit, .profile-card.exit {
             transform: translateX(120%) !important;
             opacity: 0;
         }
 
-        .song-bar.enter, .setting-item.enter, .mission-item.enter {
+        .song-bar.enter, .setting-item.enter, .mission-item.enter, .profile-card.enter {
             animation: bounceInRight 0.8s cubic-bezier(0.2, 1, 0.3, 1) forwards;
         }
 
@@ -248,6 +257,99 @@
             background: var(--glass);
             padding: 5px 10px;
             border-radius: 8px;
+        }
+
+        .profile-header {
+            display: flex;
+            align-items: center;
+            gap: 25px;
+            width: 100%;
+            justify-content: flex-end;
+        }
+
+        .avatar-container {
+            position: relative;
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            border: 4px solid var(--accent);
+            cursor: pointer;
+            overflow: hidden;
+            background: #111;
+        }
+
+        .avatar-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .edit-icon {
+            position: absolute;
+            bottom: 5px;
+            right: 5px;
+            background: var(--accent);
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border: 2px solid #000;
+        }
+
+        .edit-icon svg {
+            width: 16px;
+            height: 16px;
+            fill: #000;
+        }
+
+        .user-name-input {
+            background: transparent;
+            border: none;
+            border-bottom: 2px solid var(--border);
+            color: white;
+            font-size: 2.2rem;
+            font-weight: 700;
+            text-align: right;
+            font-family: 'Fredoka', sans-serif;
+            width: 250px;
+            outline: none;
+            transition: 0.3s;
+        }
+
+        .user-name-input:focus {
+            border-color: var(--accent);
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            width: 100%;
+            margin-top: 10px;
+        }
+
+        .stat-box {
+            background: rgba(255,255,255,0.02);
+            padding: 20px;
+            border-radius: 25px;
+            border: 1px solid var(--border);
+            text-align: right;
+        }
+
+        .stat-box span {
+            display: block;
+            font-size: 0.8rem;
+            color: #888;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 5px;
+        }
+
+        .stat-box b {
+            font-size: 1.5rem;
+            color: #fff;
         }
 
         @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
@@ -580,12 +682,13 @@
     <div id="main-ui">
         <div id="left-bar-container">
             <div id="btn-inicio" class="menu-bar active" style="animation-delay: 0.1s;" onclick="showMainView()">Inicio</div>
-            <div class="menu-bar" style="animation-delay: 0.2s;">Perfil</div>
+            <div id="btn-perfil" class="menu-bar" style="animation-delay: 0.2s;" onclick="showProfileView()">Perfil</div>
             <div id="btn-misiones" class="menu-bar" style="animation-delay: 0.3s;" onclick="showMissionsView()">Misiones</div>
             <div id="btn-ajustes" class="menu-bar" style="animation-delay: 0.4s;" onclick="showSettingsView()">Ajustes</div>
         </div>
         <div id="right-song-container"></div>
         <div id="right-missions-container" style="display: none;"></div>
+        <div id="right-profile-container" style="display: none;"></div>
         <div id="right-settings-container" style="display: none;">
             <div class="setting-item enter">
                 <div class="setting-info">
@@ -647,6 +750,8 @@
             </div>
         </div>
     </div>
+
+    <input type="file" id="avatar-upload" accept="image/*" style="display: none;" onchange="handleAvatarChange(event)">
 
     <div id="intro-layer">
         <div class="intro-hearts">
@@ -713,7 +818,7 @@
             { id: 1, name: "ART OF GUITAR", artist: "Marcin, RJ Pasin", path: "music/marcin.mp3", duration: 143, diff: 185, speed: 1.5, nerfed: true, bg: "img/fn/music2.webp" },
             { id: 2, name: "Everything Black", artist: "Unlike Pluto", path: "music/unlike.mp3", duration: 229, diff: 180, speed: 2.2, bg: "img/fn/music3.webp" },
             { id: 3, name: "Chop Suey!", artist: "System Of A To Down", path: "music/system.mp3", duration: 208, diff: 170, speed: 1.6, bg: "img/fn/music4.webp" },
-            { id: 4, name: "Adoウタカタララバイ", artist: "Ado", path: "music/onepiece.mp3", duration: 193, diff: 135, speed: 2.0, bg: "img/fn/music5.webp" },
+            { id: 4, name: "Adoウ타카타라라바이", artist: "Ado", path: "music/onepiece.mp3", duration: 193, diff: 135, speed: 2.0, bg: "img/fn/music5.webp" },
             { id: 5, name: "Pañuelito Rojo", artist: "Big Metra", path: "music/bigmetra.mp3", duration: 216, diff: 110, speed: 1.5, bg: "img/fn/music6.webp" },
             { id: 6, name: "Trato de no trabarme", artist: "Big Metra", path: "music/bigmetra2.mp3", duration: 228, diff: 75, death: true, speed: 1.3, bg: "img/fn/music7.webp" },
             { id: 7, name: "Puppet vs Tails Doll", artist: "Kronno Zomber", path: "music/puppet.mp3", duration: 285, diff: 130, speed: 2.1, bg: "img/fn/music8.webp" },
@@ -721,7 +826,8 @@
             { id: 9, name: "Given Up [Official Music Video]", artist: "Linkin Park", path: "music/givenup.mp3", duration: 191, diff: 120, speed: 2.3, bg: "img/fn/music10.webp" },
             { id: 10, name: "17 Años", artist: "Los Ángeles Azules", path: "music/17años.mp3", duration: 181, diff: 140, speed: 1.7, bg: "img/fn/music11.webp" },
             { id: 11, name: "IGAKU/Medicine", artist: "Desconocido", path: "music/igakumedicine.mp3", duration: 123, diff: 160, speed: 1.6, bg: "img/fn/music12.webp" },
-            { id: 12, name: "처형박수 (Execution Clap)", artist: "카사네 테토", path: "music/execution.mp3", duration: 194, diff: 155, speed: 1.8, bg: "img/fn/music13.webp" }
+            { id: 12, name: "처형박수 (Execution Clap)", artist: "카사네 테토", path: "music/execution.mp3", duration: 194, diff: 155, speed: 1.8, bg: "img/fn/music13.webp" },
+            { id: 13, name: "505 (505 - Arctic Monkeys)", artist: "Arctic Monkeys", path: "music/505.mp3", duration: 254, diff: 150, speed: 1.8, bg: "img/fn/music14.webp" }
         ];
 
         const arrowSvgs = [
@@ -781,8 +887,10 @@
         let patternMode = 'random';
         const audio = document.getElementById('game-audio');
         const sfxMission = document.getElementById('sfx-mission');
+        
         let completedMissions = JSON.parse(localStorage.getItem('okao_missions') || '[]');
-        let totalStats = JSON.parse(localStorage.getItem('okao_stats') || '{"score":0, "songs":0, "stars":0}');
+        let totalStats = JSON.parse(localStorage.getItem('okao_stats') || '{"score":0, "songs":0, "stars":0, "bestScore":0}');
+        let userData = JSON.parse(localStorage.getItem('okao_user') || '{"name":"Usuario", "avatar":""}');
 
         function initSongList() {
             const container = document.getElementById('right-song-container');
@@ -846,10 +954,81 @@
             });
         }
 
+        function initProfileView() {
+            const container = document.getElementById('right-profile-container');
+            container.innerHTML = '';
+            const card = document.createElement('div');
+            card.className = 'profile-card enter';
+            card.innerHTML = `
+                <div class="profile-header">
+                    <input type="text" class="user-name-input" value="${userData.name}" onchange="updateUserName(this.value)">
+                    <div class="avatar-container" onclick="document.getElementById('avatar-upload').click()">
+                        <img src="${userData.avatar || 'https://via.placeholder.com/150'}" id="profile-img-preview">
+                        <div class="edit-icon">
+                            <svg viewBox="0 0 24 24"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>
+                        </div>
+                    </div>
+                </div>
+                <div class="stats-grid">
+                    <div class="stat-box"><span>Puntaje Total</span><b>${totalStats.score.toLocaleString()}</b></div>
+                    <div class="stat-box"><span>Mejor Puntaje</span><b>${totalStats.bestScore.toLocaleString()}</b></div>
+                    <div class="stat-box"><span>Misiones</span><b>${completedMissions.length} / ${missionsData.length}</b></div>
+                    <div class="stat-box"><span>Canciones</span><b>${totalStats.songs}</b></div>
+                    <div class="stat-box"><span>Estrellas</span><b>${totalStats.stars} ★</b></div>
+                    <div class="stat-box"><span>Precisión Media</span><b>${totalStats.songs > 0 ? Math.floor((totalStats.score / (totalStats.songs * 5000)) * 100) : 0}%</b></div>
+                </div>
+                <button class="action-btn" style="width: 100%; border-right: 1px solid var(--border); border-radius: 40px; margin-top: 10px;" onclick="saveProfileChanges()">APLICAR CAMBIOS</button>
+            `;
+            container.appendChild(card);
+        }
+
+        function updateUserName(name) {
+            userData.name = name;
+        }
+
+        function handleAvatarChange(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    userData.avatar = event.target.result;
+                    document.getElementById('profile-img-preview').src = event.target.result;
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function saveProfileChanges() {
+            localStorage.setItem('okao_user', JSON.stringify(userData));
+            notifyMission();
+        }
+
+        async function showProfileView() {
+            document.querySelectorAll('.menu-bar').forEach(b => b.classList.remove('active'));
+            document.getElementById('btn-perfil').classList.add('active');
+            const containers = ['right-song-container', 'right-settings-container', 'right-missions-container'];
+            for(let id of containers) {
+                const activeCont = document.getElementById(id);
+                if(activeCont.style.display !== 'none') {
+                    const children = activeCont.children;
+                    for(let i = children.length - 1; i >= 0; i--) {
+                        children[i].classList.add('exit');
+                        await new Promise(r => setTimeout(r, 20));
+                    }
+                    activeCont.style.display = 'none';
+                }
+            }
+            document.getElementById('right-profile-container').style.display = 'flex';
+            initProfileView();
+            audio.pause();
+            audio.currentTime = 0;
+            document.getElementById('bg-overlay').classList.remove('active');
+        }
+
         async function showMissionsView() {
             document.querySelectorAll('.menu-bar').forEach(b => b.classList.remove('active'));
             document.getElementById('btn-misiones').classList.add('active');
-            const containers = ['right-song-container', 'right-settings-container'];
+            const containers = ['right-song-container', 'right-settings-container', 'right-profile-container'];
             for(let id of containers) {
                 const activeCont = document.getElementById(id);
                 if(activeCont.style.display !== 'none') {
@@ -868,7 +1047,7 @@
         async function showSettingsView() {
             document.querySelectorAll('.menu-bar').forEach(b => b.classList.remove('active'));
             document.getElementById('btn-ajustes').classList.add('active');
-            const containers = ['right-song-container', 'right-missions-container'];
+            const containers = ['right-song-container', 'right-missions-container', 'right-profile-container'];
             for(let id of containers) {
                 const activeCont = document.getElementById(id);
                 if(activeCont.style.display !== 'none') {
@@ -888,7 +1067,7 @@
         async function showMainView() {
             document.querySelectorAll('.menu-bar').forEach(b => b.classList.remove('active'));
             document.getElementById('btn-inicio').classList.add('active');
-            const containers = ['right-settings-container', 'right-missions-container'];
+            const containers = ['right-settings-container', 'right-missions-container', 'right-profile-container'];
             for(let id of containers) {
                 const activeCont = document.getElementById(id);
                 if(activeCont.style.display !== 'none') {
@@ -919,6 +1098,7 @@
             if (win) {
                 totalStats.score += score;
                 totalStats.songs += 1;
+                if(score > totalStats.bestScore) totalStats.bestScore = score;
                 let earnedStars = 1 + (lives >= 2 ? 1 : 0) + (misses === 0 ? 1 : 0);
                 totalStats.stars += earnedStars;
                 localStorage.setItem('okao_stats', JSON.stringify(totalStats));
@@ -1023,7 +1203,7 @@
             }
             if (savedFlash) {
                 flashIntensity = parseInt(savedFlash);
-                document.getElementById('flash-range').value = flashIntensity;
+                document.getElementById('flash-range').value = savedFlash;
                 document.getElementById('flash-val').textContent = flashIntensity;
             }
         }
