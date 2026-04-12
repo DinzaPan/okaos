@@ -39,6 +39,25 @@
             align-items: center;
         }
 
+        #bg-overlay {
+            position: fixed;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            background-size: cover;
+            background-position: center;
+            opacity: 0;
+            transition: opacity 0.5s ease, transform 0.8s ease;
+            z-index: -1;
+            pointer-events: none;
+            transform: scale(1.1);
+        }
+
+        #bg-overlay.active {
+            opacity: 0.3;
+            transform: scale(1);
+        }
+
         .center-bg {
             position: absolute;
             left: 50%;
@@ -515,6 +534,7 @@
 </head>
 <body>
     <audio id="game-audio" preload="auto" crossorigin="anonymous"></audio>
+    <div id="bg-overlay"></div>
     <div class="center-bg">OKAOs</div>
     
     <div id="main-ui">
@@ -647,15 +667,15 @@
 
     <script>
         const songs = [
-            { id: 0, name: "Puertas", artist: "El Cuarteto de Nos", path: "music/puertas.mp3", duration: 228, diff: 180, speed: 2.5 },
-            { id: 1, name: "ART OF GUITAR", artist: "Marcin, RJ Pasin", path: "music/marcin.mp3", duration: 143, diff: 155, speed: 1.8, boosted: true },
-            { id: 2, name: "Everything Black", artist: "Unlike Pluto", path: "music/unlike.mp3", duration: 229, diff: 180, speed: 2.2 },
-            { id: 3, name: "Chop Suey!", artist: "System Of A Down", path: "music/system.mp3", duration: 208, diff: 170, speed: 1.6 },
-            { id: 4, name: "Adoウタカタララバイ", artist: "Ado", path: "music/onepiece.mp3", duration: 193, diff: 135, speed: 2.0 },
-            { id: 5, name: "Pañuelito Rojo", artist: "Big Metra", path: "music/bigmetra.mp3", duration: 216, diff: 110, speed: 1.5 },
-            { id: 6, name: "Trato de no trabarme", artist: "Big Metra", path: "music/bigmetra2.mp3", duration: 228, diff: 75, death: true, speed: 1.3 },
-            { id: 7, name: "Puppet vs Tails Doll", artist: "Kronno Zomber", path: "music/puppet.mp3", duration: 285, diff: 130, speed: 2.1 },
-            { id: 8, name: "AiAiA", artist: "Ado", path: "music/aiaia.mp3", duration: 259, diff: 145, speed: 2.2 }
+            { id: 0, name: "Puertas", artist: "El Cuarteto de Nos", path: "music/puertas.mp3", duration: 228, diff: 180, speed: 2.5, bg: "img/fn/music1.webp" },
+            { id: 1, name: "ART OF GUITAR", artist: "Marcin, RJ Pasin", path: "music/marcin.mp3", duration: 143, diff: 155, speed: 1.8, boosted: true, bg: "img/fn/music2.webp" },
+            { id: 2, name: "Everything Black", artist: "Unlike Pluto", path: "music/unlike.mp3", duration: 229, diff: 180, speed: 2.2, bg: "img/fn/music3.webp" },
+            { id: 3, name: "Chop Suey!", artist: "System Of A Down", path: "music/system.mp3", duration: 208, diff: 170, speed: 1.6, bg: "img/fn/music4.webp" },
+            { id: 4, name: "Adoウタカタララバイ", artist: "Ado", path: "music/onepiece.mp3", duration: 193, diff: 135, speed: 2.0, bg: "img/fn/music5.webp" },
+            { id: 5, name: "Pañuelito Rojo", artist: "Big Metra", path: "music/bigmetra.mp3", duration: 216, diff: 110, speed: 1.5, bg: "img/fn/music6.webp" },
+            { id: 6, name: "Trato de no trabarme", artist: "Big Metra", path: "music/bigmetra2.mp3", duration: 228, diff: 75, death: true, speed: 1.3, bg: "img/fn/music7.webp" },
+            { id: 7, name: "Puppet vs Tails Doll", artist: "Kronno Zomber", path: "music/puppet.mp3", duration: 285, diff: 130, speed: 2.1, bg: "img/fn/music8.webp" },
+            { id: 8, name: "AiAiA", artist: "Ado", path: "music/aiaia.mp3", duration: 259, diff: 145, speed: 2.2, bg: "img/fn/music9.webp" }
         ];
 
         const arrowSvgs = [
@@ -677,12 +697,23 @@
 
         function initSongList() {
             const container = document.getElementById('right-song-container');
+            const bgOverlay = document.getElementById('bg-overlay');
             container.innerHTML = '';
             songs.forEach((s, i) => {
                 const bar = document.createElement('div');
                 bar.className = `song-bar enter`;
                 bar.style.animationDelay = `${i * 0.05}s`;
                 bar.onclick = () => startSequence(i);
+                
+                bar.onmouseenter = () => {
+                    bgOverlay.style.backgroundImage = `url('${s.bg}')`;
+                    bgOverlay.classList.add('active');
+                };
+                
+                bar.onmouseleave = () => {
+                    bgOverlay.classList.remove('active');
+                };
+
                 bar.innerHTML = `
                     ${s.boosted ? '<div class="boost-tag">POTENCIADO</div>' : ''}
                     <div class="disc-wrap">
