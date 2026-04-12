@@ -166,6 +166,7 @@
         .diff-tag { font-size: 0.7rem; background: #ff4757; color: white; padding: 2px 8px; border-radius: 5px; margin-left: 10px; vertical-align: middle; }
         .hard-tag { background: #6c5ce7; }
         .boost-tag { background: #00d2ff; }
+        .death-tag { background: #000; border: 1px solid #ff0000; color: #ff0000; }
 
         #settings-panel {
             position: fixed;
@@ -507,6 +508,13 @@
                 </div>
                 <svg viewBox="0 0 24 24" width="30" height="30" fill="white"><path d="M8 5v14l11-7z"/></svg>
             </div>
+            <div class="song-card" onclick="selectSong(6)">
+                <div class="song-info">
+                    <h3>BIG METRA - TRATO DE NO TRABARME <span class="diff-tag death-tag">Muerte</span></h3>
+                    <p>Duración: 3:48</p>
+                </div>
+                <svg viewBox="0 0 24 24" width="30" height="30" fill="#ff0000"><path d="M12 2c-4.42 0-8 3.58-8 8 0 4.25 3.3 7.74 7.5 7.97V22h1v-4.03c4.2-.23 7.5-3.72 7.5-7.97 0-4.42-3.58-8-8-8zm-2.5 9c-.83 0-1.5-.67-1.5-1.5S8.67 8 9.5 8s1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm5 0c-.83 0-1.5-.67-1.5-1.5S14.17 8 15 8s1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/></svg>
+            </div>
         </div>
         <button class="btn-s btn-cancel" style="margin-top:30px; width:200px" onclick="hideSongSelection()">Volver</button>
     </div>
@@ -535,7 +543,7 @@
     </div>
 
     <div id="intro-layer">
-        <div class="intro-hearts">
+        <div class="intro-hearts" id="intro-hearts-container">
             <svg id="ih1" class="intro-heart" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
             <svg id="ih2" class="intro-heart" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
             <svg id="ih3" class="intro-heart" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
@@ -616,7 +624,8 @@
             { name: "Everything Black", artist: "Unlike Pluto", path: "music/unlike.mp3", duration: 229, diff: 180 },
             { name: "Chop Suey!", artist: "System Of A Down", path: "music/system.mp3", duration: 208, diff: 170 },
             { name: "Adoウタカタララバイウタ ONE PIECE", artist: "Ado", path: "music/onepiece.mp3", duration: 193, diff: 135 },
-            { name: "Big Metra Pañuelito Rojo", artist: "Big Metra", path: "music/bigmetra.mp3", duration: 216, diff: 110, boosted: true }
+            { name: "Big Metra Pañuelito Rojo", artist: "Big Metra", path: "music/bigmetra.mp3", duration: 216, diff: 110, boosted: true },
+            { name: "BIG METRA - TRATO DE NO TRABARME", artist: "Big Metra", path: "music/bigmetra2.mp3", duration: 228, diff: 100, death: true }
         ];
 
         let selectedSongIndex = 0;
@@ -687,6 +696,8 @@
             '<svg viewBox="0 0 24 24"><path d="M3 3L21 21M21 21H12M21 21V12" stroke="black" stroke-width="2" fill="none"/></svg>'
         ];
 
+        const brokenHeartPath = "M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z M11 5 L13 19 M13 5 L11 19";
+
         function handleInteraction(type) {
             if (!audioCtx) {
                 audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -714,17 +725,17 @@
             let energy = fullSum / dataArray.length;
             
             const song = songs[selectedSongIndex];
-            currentFallSpeed = song.boosted ? Math.max(1.0, 2.0 - (energy / 80)) : Math.max(1.2, 3.0 - (energy / 60));
+            currentFallSpeed = song.death ? 1.5 : (song.boosted ? Math.max(1.0, 2.0 - (energy / 80)) : Math.max(1.2, 3.0 - (energy / 60)));
             
             const now = Date.now();
             const threshold = song.diff;
-            const minInterval = song.boosted ? (energy > 80 ? 100 : 200) : (energy > 80 ? 180 : 350);
+            const minInterval = song.death ? 80 : (song.boosted ? (energy > 80 ? 100 : 200) : (energy > 80 ? 180 : 350));
             
             if (bassIntensity > threshold && (now - lastBeatTime) > minInterval) { 
                 lastBeatTime = now; 
                 spawnNote(Math.floor(Math.random() * 4)); 
-                if(song.boosted && energy > 100 && Math.random() > 0.5) {
-                    setTimeout(() => spawnNote(Math.floor(Math.random() * 4)), 80);
+                if((song.boosted || song.death) && energy > 100 && Math.random() > 0.5) {
+                    setTimeout(() => spawnNote(Math.floor(Math.random() * 4)), song.death ? 50 : 80);
                 }
             }
         }
@@ -732,12 +743,24 @@
         function startSequence() { menu.style.opacity = '0'; setTimeout(() => { menu.style.display = 'none'; intro.style.display = 'flex'; runIntro(); }, 600); }
 
         async function runIntro() {
+            const song = songs[selectedSongIndex];
             const h = [document.getElementById('ih1'), document.getElementById('ih2'), document.getElementById('ih3')];
             const msg = document.getElementById('intro-msg');
             const wait = ms => new Promise(r => setTimeout(r, ms));
+            
+            if(song.death) {
+                h.forEach(el => el.querySelector('path').setAttribute('d', brokenHeartPath));
+                h.forEach(el => el.style.fill = '#555');
+            } else {
+                h.forEach(el => el.querySelector('path').setAttribute('d', "M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"));
+                h.forEach(el => el.style.fill = '#ff4757');
+            }
+
             for(let i=0; i<3; i++) { h[i].style.opacity = '1'; h[i].style.transform = 'scale(1.2)'; await wait(600); }
             h.forEach(x => x.style.opacity = '0'); await wait(400);
-            msg.textContent = "3 Vidas"; msg.style.opacity = '1'; msg.style.transform = 'translateY(0)'; await wait(1200);
+            
+            msg.textContent = song.death ? "Sin Vidas" : "3 Vidas"; 
+            msg.style.opacity = '1'; msg.style.transform = 'translateY(0)'; await wait(1200);
             msg.style.opacity = '0'; await wait(400);
             msg.textContent = "¿Listo?"; msg.style.opacity = '1'; await wait(1000);
             msg.style.opacity = '0'; await wait(400);
