@@ -192,13 +192,13 @@
             justify-content: center;
             align-items: center;
             border: 2px solid rgba(255,255,255,0.1);
+            overflow: hidden;
         }
 
-        .disc-svg {
-            width: 45px;
-            height: 45px;
-            fill: #fff;
-            animation: spin 4s linear infinite;
+        .disc-gif {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
         }
 
         .song-info, .setting-info, .mission-info { text-align: right; width: 100%; }
@@ -720,8 +720,8 @@
             { id: 8, name: "AiAiA", artist: "Ado", path: "music/aiaia.mp3", duration: 259, diff: 145, speed: 2.2, bg: "img/fn/music9.webp" },
             { id: 9, name: "Given Up [Official Music Video]", artist: "Linkin Park", path: "music/givenup.mp3", duration: 191, diff: 120, speed: 2.3, bg: "img/fn/music10.webp" },
             { id: 10, name: "17 Años", artist: "Los Ángeles Azules", path: "music/17años.mp3", duration: 181, diff: 140, speed: 1.7, bg: "img/fn/music11.webp" },
-            { id: 11, name: "IGAKU/Medicine", artist: "Desconocido", path: "music/igakumedicine.mp3", duration: 123, diff: 160, speed: 2.4, bg: "img/fn/music12.webp" },
-            { id: 12, name: "처형박수 (Execution Clap)", artist: "카사네 테토", path: "music/execution.mp3", duration: 194, diff: 155, speed: 2.3, bg: "img/fn/music13.webp" }
+            { id: 11, name: "IGAKU/Medicine", artist: "Desconocido", path: "music/igakumedicine.mp3", duration: 123, diff: 160, speed: 1.6, bg: "img/fn/music12.webp" },
+            { id: 12, name: "처형박수 (Execution Clap)", artist: "카사네 테토", path: "music/execution.mp3", duration: 194, diff: 155, speed: 1.8, bg: "img/fn/music13.webp" }
         ];
 
         const arrowSvgs = [
@@ -797,17 +797,23 @@
                 bar.onmouseenter = () => {
                     bgOverlay.style.backgroundImage = `url('${s.bg}')`;
                     bgOverlay.classList.add('active');
+                    if (audio.src !== window.location.origin + '/' + s.path) {
+                        audio.src = s.path;
+                        audio.play().catch(() => {});
+                    }
                 };
                 
                 bar.onmouseleave = () => {
                     bgOverlay.classList.remove('active');
+                    audio.pause();
+                    audio.currentTime = 0;
                 };
 
                 bar.innerHTML = `
                     ${s.boosted ? '<div class="boost-tag">POTENCIADO</div>' : ''}
                     ${s.nerfed ? '<div class="nerf-tag">NERFEADO</div>' : ''}
                     <div class="disc-wrap">
-                        <svg class="disc-svg" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 14.5c-2.49 0-4.5-2.01-4.5-4.5S9.51 7.5 12 7.5s4.5 2.01 4.5 4.5-2.01 4.5-4.5 4.5zm0-5.5c-.55 0-1 .45-1 1s.45 1 1 1 1-.45 1-1-.45-1-1-1z"/></svg>
+                        <img src="img/icons/disco.gif" class="disc-gif">
                     </div>
                     <div class="song-info">
                         <h3>${s.name}</h3>
@@ -829,9 +835,7 @@
                 item.style.animationDelay = `${i * 0.03}s`;
                 item.innerHTML = `
                     <div class="disc-wrap">
-                        <svg class="disc-svg" viewBox="0 0 24 24" style="fill: ${isCompleted ? 'var(--k3)' : '#fff'}">
-                            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
-                        </svg>
+                        <img src="img/icons/disco.gif" class="disc-gif" style="filter: ${isCompleted ? 'hue-rotate(90deg)' : 'none'}">
                     </div>
                     <div class="mission-info">
                         <h3>${m.title}</h3>
