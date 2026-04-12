@@ -557,9 +557,9 @@
         </div>
         <div class="top-bar">
             <div class="lives-container" id="lives-ui">
-                <svg class="life-heart" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
-                <svg class="life-heart" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
-                <svg class="life-heart" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+                <svg id="life-0" class="life-heart" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+                <svg id="life-1" class="life-heart" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+                <svg id="life-2" class="life-heart" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
             </div>
             <div class="pause-trigger" onclick="togglePause()">
                 <svg viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
@@ -752,15 +752,17 @@
             if(song.death) {
                 h.forEach(el => el.querySelector('path').setAttribute('d', brokenHeartPath));
                 h.forEach(el => el.style.fill = '#555');
+                h[0].style.opacity = '1'; h[0].style.transform = 'scale(1.2)';
+                await wait(600);
             } else {
                 h.forEach(el => el.querySelector('path').setAttribute('d', "M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"));
                 h.forEach(el => el.style.fill = '#ff4757');
+                for(let i=0; i<3; i++) { h[i].style.opacity = '1'; h[i].style.transform = 'scale(1.2)'; await wait(600); }
             }
 
-            for(let i=0; i<3; i++) { h[i].style.opacity = '1'; h[i].style.transform = 'scale(1.2)'; await wait(600); }
             h.forEach(x => x.style.opacity = '0'); await wait(400);
             
-            msg.textContent = song.death ? "Sin Vidas" : "3 Vidas"; 
+            msg.textContent = song.death ? "1 Vida" : "3 Vidas"; 
             msg.style.opacity = '1'; msg.style.transform = 'translateY(0)'; await wait(1200);
             msg.style.opacity = '0'; await wait(400);
             msg.textContent = "¿Listo?"; msg.style.opacity = '1'; await wait(1000);
@@ -774,14 +776,13 @@
             const song = songs[selectedSongIndex];
             isDead = false; 
             isPaused = false; 
-            lives = 3; 
+            lives = song.death ? 1 : 3; 
             combo = 0; 
             lastBeatTime = 0; 
             activeNotes.forEach(n => n.el.remove()); 
             activeNotes = []; 
             comboEl.textContent = "0"; 
             progressBar.style.width = '0%'; 
-            livesUI.style.display = song.death ? 'none' : 'flex';
             updateLivesUI(); 
         }
 
@@ -831,18 +832,27 @@
 
         function loseLife() { 
             if(isDead) return;
-            const song = songs[selectedSongIndex];
-            if(!song.death) {
-                lives--; 
-                updateLivesUI(); 
-                if(lives <= 0) { isDead = true; analyzerActive = false; audio.pause(); showOverlay("Game Over", false); } 
-            }
+            lives--; 
+            updateLivesUI(); 
+            if(lives <= 0) { isDead = true; analyzerActive = false; audio.pause(); showOverlay("Game Over", false); } 
             updateStatus('Miss', '#ff4757'); 
             combo = 0; 
             comboEl.textContent = "0"; 
         }
 
-        function updateLivesUI() { const hearts = document.querySelectorAll('.life-heart'); hearts.forEach((h, i) => h.style.opacity = i < lives ? '1' : '0.1'); }
+        function updateLivesUI() { 
+            const song = songs[selectedSongIndex];
+            const max = song.death ? 1 : 3;
+            for(let i=0; i<3; i++) {
+                const h = document.getElementById(`life-${i}`);
+                if(i >= max) h.style.display = 'none';
+                else {
+                    h.style.display = 'block';
+                    h.style.opacity = i < lives ? '1' : '0.1';
+                }
+            }
+        }
+
         function togglePause() { if(isDead) return; isPaused = !isPaused; if(isPaused) audio.pause(); else audio.play(); if(isPaused) showOverlay("Pausa", true); else overlay.style.display = 'none'; activeNotes.forEach(n => n.el.style.animationPlayState = isPaused ? 'paused' : 'running'); }
         function showOverlay(title, showControls) { overlay.style.display = 'flex'; document.getElementById('overlay-title').textContent = title; document.getElementById('resume-btn').style.display = showControls ? 'flex' : 'none'; document.getElementById('settings-btn').style.display = showControls ? 'flex' : 'none'; document.getElementById('restart-btn').textContent = showControls ? "Reiniciar" : "Reintentar (Enter)"; }
         function restartGame() { overlay.style.display = 'none'; initGame(); audio.currentTime = 0; audio.play(); analyzerActive = true; analyzeLoop(); }
