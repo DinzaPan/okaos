@@ -24,6 +24,7 @@
             --k2: #3742fa;
             --k3: #2ed573;
             --k4: #eab000;
+            --boost: #00f2ff;
         }
 
         body {
@@ -54,6 +55,7 @@
             height: 100%;
             display: flex;
             align-items: center;
+            transition: 0.6s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         #left-bar-container {
@@ -119,6 +121,27 @@
             animation: bounceInRight 0.8s cubic-bezier(0.2, 1, 0.3, 1) forwards;
             backdrop-filter: blur(10px);
             margin-right: 0;
+            position: relative;
+        }
+
+        .song-bar.boosted {
+            border-color: var(--boost);
+            box-shadow: inset 0 0 20px rgba(0, 242, 255, 0.1);
+        }
+
+        .boost-tag {
+            position: absolute;
+            top: 15px;
+            left: 40px;
+            background: var(--boost);
+            color: #000;
+            font-size: 0.7rem;
+            font-weight: 700;
+            padding: 4px 10px;
+            border-radius: 5px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            box-shadow: 0 0 15px var(--boost);
         }
 
         .song-bar:hover, .song-bar.selected {
@@ -395,8 +418,8 @@
             width: 100%;
         }
 
-        #combo-text { font-size: 4rem; font-weight: 700; color: rgba(255,255,255,0.1); }
-        #status-text { font-size: 1.5rem; font-weight: 700; text-transform: uppercase; letter-spacing: 5px; opacity: 0; }
+        #combo-text { font-size: 5rem; font-weight: 700; color: rgba(255,255,255,0.2); transition: transform 0.1s; }
+        #status-text { font-size: 1.5rem; font-weight: 700; text-transform: uppercase; letter-spacing: 5px; opacity: 0; transition: 0.2s; }
 
         #overlay-game {
             position: fixed;
@@ -452,7 +475,6 @@
     <div id="overlay-settings">
         <div class="settings-card">
             <h2 style="margin-bottom: 10px;">Ajustes</h2>
-            <p style="color:#888; font-size:0.9rem; margin-bottom:20px;">Haz clic para cambiar una tecla</p>
             <div class="key-config-grid">
                 <div class="key-input" id="cfg-0" onclick="startKeyCapture(0)">A</div>
                 <div class="key-input" id="cfg-1" onclick="startKeyCapture(1)">S</div>
@@ -463,7 +485,7 @@
                 <p style="color:#888; margin-bottom:10px;">Volumen Maestro</p>
                 <input type="range" id="vol-range" min="0" max="1" step="0.1" value="1" style="width:100%;">
             </div>
-            <button class="action-btn" onclick="saveAndCloseSettings()">GUARDAR CONFIGURACIÓN</button>
+            <button class="action-btn" onclick="saveAndCloseSettings()">GUARDAR</button>
         </div>
     </div>
 
@@ -518,18 +540,18 @@
             </div>
         </div>
         <div style="width: 450px; display: flex; flex-direction: column; gap: 10px;">
-            <button class="action-btn" id="resume-btn" onclick="togglePause()">REANUDAR (ESC)</button>
-            <button class="action-btn" id="restart-btn" onclick="restartSong()">REINICIAR (ENTER)</button>
-            <button class="action-btn secondary" onclick="location.reload()">VOLVER AL INICIO</button>
+            <button class="action-btn" onclick="togglePause()">REANUDAR</button>
+            <button class="action-btn" onclick="restartSong()">REINICIAR</button>
+            <button class="action-btn secondary" onclick="location.reload()">INICIO</button>
         </div>
     </div>
 
     <script>
         const songs = [
             { id: 0, name: "Puertas", artist: "El Cuarteto de Nos", path: "music/puertas.mp3", duration: 228, diff: 180, speed: 2.2 },
-            { id: 1, name: "ART OF GUITAR", artist: "Marcin, RJ Pasin", path: "music/marcin.mp3", duration: 143, diff: 155, speed: 1.8 },
+            { id: 1, name: "ART OF GUITAR", artist: "Marcin, RJ Pasin", path: "music/marcin.mp3", duration: 143, diff: 150, speed: 1.6, boosted: true },
             { id: 2, name: "Everything Black", artist: "Unlike Pluto", path: "music/unlike.mp3", duration: 229, diff: 180, speed: 2.1 },
-            { id: 3, name: "Chop Suey!", artist: "System Of A Down", path: "music/system.mp3", duration: 208, diff: 170, speed: 1.6 },
+            { id: 3, name: "Chop Suey!", artist: "System Of A Down", path: "music/system.mp3", duration: 208, diff: 170, speed: 1.5 },
             { id: 4, name: "Adoウタカタララバイ", artist: "Ado", path: "music/onepiece.mp3", duration: 193, diff: 135, speed: 1.9 },
             { id: 5, name: "Pañuelito Rojo", artist: "Big Metra", path: "music/bigmetra.mp3", duration: 216, diff: 110, speed: 1.4 },
             { id: 6, name: "Trato de no trabarme", artist: "Big Metra", path: "music/bigmetra2.mp3", duration: 228, diff: 75, death: true, speed: 1.2 },
@@ -545,13 +567,12 @@
         ];
 
         let gameKeys = ['a', 's', 'k', 'l'];
-        let captureIndex = -1;
-        let selectedSongIndex = 0;
-        let combo = 0, maxCombo = 0, score = 0, perfects = 0, misses = 0, lives = 3, initialLives = 3;
+        let captureIndex = -1, selectedSongIndex = 0;
+        let combo = 0, maxCombo = 0, score = 0, perfects = 0, misses = 0, lives = 3;
         let isPaused = false, isDead = false, analyzerActive = false;
         let activeNotes = [];
-        let audioCtx, analyzer, dataArray, source, lastBeatTime = 0;
-        let currentDynamicSpeed = 2.0;
+        let audioCtx, analyzer, dataArray;
+        let lastSpawn = 0, spawnThreshold = 150;
         const audio = document.getElementById('game-audio');
 
         function loadSavedSettings() {
@@ -576,20 +597,18 @@
         function initSongList() {
             const container = document.getElementById('right-song-container');
             songs.forEach((s, i) => {
-                const diffLabel = s.death ? "LEGEND" : (s.diff < 100 ? "HARD" : s.diff < 150 ? "NORMAL" : "EASY");
                 const bar = document.createElement('div');
-                bar.className = 'song-bar';
-                bar.id = `song-bar-${i}`;
-                bar.style.animationDelay = `${0.5 + (i * 0.1)}s`;
+                bar.className = `song-bar ${s.boosted ? 'boosted' : ''}`;
                 bar.onclick = () => startSequence(i);
                 bar.innerHTML = `
+                    ${s.boosted ? '<div class="boost-tag">Potenciado</div>' : ''}
                     <div class="disc-wrap">
                         <svg class="disc-svg" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 14.5c-2.49 0-4.5-2.01-4.5-4.5S9.51 7.5 12 7.5s4.5 2.01 4.5 4.5-2.01 4.5-4.5 4.5zm0-5.5c-.55 0-1 .45-1 1s.45 1 1 1 1-.45 1-1-.45-1-1-1z"/></svg>
                     </div>
                     <div class="song-info">
                         <h3>${s.name}</h3>
                         <p>${s.artist}</p>
-                        <span class="diff-badge">${diffLabel} • LVL ${Math.floor((200-s.diff)/10)}</span>
+                        <span class="diff-badge">${s.death ? 'LEGEND' : 'NORMAL'}</span>
                     </div>
                 `;
                 container.appendChild(bar);
@@ -601,171 +620,132 @@
         function startKeyCapture(index) {
             captureIndex = index;
             document.querySelectorAll('.key-input').forEach(el => el.classList.remove('waiting'));
-            const target = document.getElementById(`cfg-${index}`);
-            target.classList.add('waiting');
-            target.textContent = "...";
+            document.getElementById(`cfg-${index}`).classList.add('waiting');
         }
 
         async function startSequence(index) {
             selectedSongIndex = index;
-            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            if (audioCtx.state === 'suspended') await audioCtx.resume();
-            if (!source) {
-                source = audioCtx.createMediaElementSource(audio);
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
                 analyzer = audioCtx.createAnalyser();
-                analyzer.fftSize = 256;
-                analyzer.smoothingTimeConstant = 0.8;
+                const source = audioCtx.createMediaElementSource(audio);
                 source.connect(analyzer);
                 analyzer.connect(audioCtx.destination);
+                analyzer.fftSize = 512;
                 dataArray = new Uint8Array(analyzer.frequencyBinCount);
             }
             audio.src = songs[index].path;
             audio.load();
-            const ui = document.getElementById('main-ui');
-            ui.style.opacity = '0';
-            ui.style.transform = 'scale(1.1)';
+            document.getElementById('main-ui').style.opacity = '0';
             setTimeout(() => {
-                ui.style.display = 'none';
+                document.getElementById('main-ui').style.display = 'none';
                 document.getElementById('intro-layer').style.display = 'flex';
                 runIntro();
-            }, 600);
+            }, 500);
         }
 
         async function runIntro() {
-            const h = [document.getElementById('ih1'), document.getElementById('ih2'), document.getElementById('ih3')];
             const msg = document.getElementById('intro-msg');
-            const wait = ms => new Promise(r => setTimeout(r, ms));
-            for(let i=0; i<3; i++) { h[i].style.opacity = '1'; h[i].style.transform = 'scale(1.2)'; await wait(500); }
-            h.forEach(x => x.style.opacity = '0'); await wait(300);
-            msg.textContent = "¿LISTO?"; msg.style.opacity = '1'; await wait(800);
-            msg.textContent = "¡GO!"; await wait(600);
+            const h = [document.getElementById('ih1'), document.getElementById('ih2'), document.getElementById('ih3')];
+            for(let i=0; i<3; i++) { h[i].style.opacity = '1'; h[i].style.transform = 'scale(1)'; await new Promise(r => setTimeout(r, 400)); }
+            msg.textContent = "READY?"; msg.style.opacity = '1'; await new Promise(r => setTimeout(r, 800));
+            msg.textContent = "GO!"; await new Promise(r => setTimeout(r, 500));
             document.getElementById('intro-layer').style.display = 'none';
             document.getElementById('game-canvas').style.display = 'flex';
-            setTimeout(() => {
-                document.getElementById('game-canvas').style.opacity = '1';
-                initGame();
-                audio.play();
-                analyzerActive = true;
-                analyzeLoop();
-            }, 50);
+            setTimeout(() => { document.getElementById('game-canvas').style.opacity = '1'; initGame(); }, 50);
         }
 
         function initGame() {
-            const song = songs[selectedSongIndex];
-            isDead = false; isPaused = false;
-            lives = song.death ? 1 : 3;
-            initialLives = lives;
+            isDead = false; isPaused = false; analyzerActive = true;
+            lives = songs[selectedSongIndex].death ? 1 : 3;
             combo = 0; score = 0; perfects = 0; misses = 0; maxCombo = 0;
-            lastBeatTime = 0;
-            activeNotes = [];
-            currentDynamicSpeed = song.speed;
-            document.getElementById('track').querySelectorAll('.note').forEach(n => n.remove());
-            document.getElementById('combo-text').textContent = "0";
-            document.getElementById('progress-bar').style.width = '0%';
-            document.getElementById('overlay-game').style.display = 'none';
-            document.getElementById('results-container').style.display = 'none';
-            document.getElementById('resume-btn').style.display = 'block';
+            audio.currentTime = 0;
+            audio.playbackRate = 1.0;
+            audio.play();
             updateLivesUI();
+            requestAnimationFrame(gameLoop);
         }
 
-        function analyzeLoop() {
-            if (!analyzerActive || isDead || isPaused) return;
-            requestAnimationFrame(analyzeLoop);
+        function gameLoop() {
+            if (!analyzerActive || isPaused || isDead) return;
             analyzer.getByteFrequencyData(dataArray);
             
-            let energy = 0;
-            for(let i = 0; i < 8; i++) energy += dataArray[i];
-            let bass = energy / 8;
+            let bass = 0, mid = 0, treble = 0;
+            for(let i=0; i<10; i++) bass += dataArray[i];
+            for(let i=15; i<40; i++) mid += dataArray[i];
+            for(let i=60; i<100; i++) treble += dataArray[i];
 
-            let midEnergy = 0;
-            for(let i = 8; i < 16; i++) midEnergy += dataArray[i];
-            let mids = midEnergy / 8;
+            bass /= 10; mid /= 25; treble /= 40;
 
-            const song = songs[selectedSongIndex];
-            
-            let targetSpeed = song.speed;
-            if (mids > 180) targetSpeed = song.speed * 1.5;
-            else if (mids < 60) targetSpeed = song.speed * 0.8;
-            else targetSpeed = song.speed * (0.8 + (mids / 255));
-            
-            currentDynamicSpeed = targetSpeed;
+            let dynamicPlayback = 1.0 + (treble / 400);
+            audio.playbackRate = Math.min(1.4, Math.max(0.8, dynamicPlayback));
 
             const now = Date.now();
-            const cooldown = song.death ? 110 : Math.max(140, 280 - (bass * 0.8));
+            const song = songs[selectedSongIndex];
             
-            if (bass > song.diff && (now - lastBeatTime) > cooldown) {
-                lastBeatTime = now;
-                spawnNote(Math.floor(Math.random() * 4));
+            if (now - lastSpawn > spawnThreshold) {
+                if (bass > song.diff) { spawnNote(0); lastSpawn = now; }
+                else if (mid > song.diff + 20) { spawnNote(Math.random() > 0.5 ? 1 : 2); lastSpawn = now; }
+                else if (treble > song.diff + 40) { spawnNote(3); lastSpawn = now; }
             }
+
+            activeNotes.forEach(n => {
+                let currentY = parseFloat(n.el.style.top || -100);
+                let speed = song.speed * audio.playbackRate * 8;
+                n.el.style.top = (currentY + speed) + 'px';
+                
+                if (currentY > window.innerHeight) {
+                    n.el.remove();
+                    activeNotes = activeNotes.filter(x => x.id !== n.id);
+                    if (!n.hit) loseLife();
+                }
+            });
+
+            requestAnimationFrame(gameLoop);
         }
 
         function spawnNote(lane) {
-            const track = document.getElementById('track');
-            const n = document.createElement('div');
-            n.className = 'note';
-            n.setAttribute('data-lane', lane);
-            n.innerHTML = arrowSvgs[lane];
+            const id = Math.random();
+            const el = document.createElement('div');
+            el.className = 'note';
+            el.dataset.lane = lane;
+            el.innerHTML = arrowSvgs[lane];
             const slot = document.getElementById(`s${lane}`);
-            n.style.left = slot.offsetLeft + 'px';
-            n.style.animation = `noteFall ${currentDynamicSpeed}s linear forwards`;
-            track.appendChild(n);
-            const obj = { el: n, lane, hit: false, id: Math.random() };
-            activeNotes.push(obj);
-            n.addEventListener('animationend', () => {
-                if(!obj.hit && !isPaused && !isDead) loseLife();
-                n.remove();
-                activeNotes = activeNotes.filter(x => x.id !== obj.id);
-            });
+            el.style.left = slot.offsetLeft + 'px';
+            el.style.top = '-100px';
+            document.getElementById('track').appendChild(el);
+            activeNotes.push({ id, el, lane, hit: false });
         }
 
         function handleInput(lane) {
-            if(isPaused || isDead) return;
-            const s = document.getElementById(`s${lane}`);
-            s.classList.add('pressed'); setTimeout(() => s.classList.remove('pressed'), 70);
-            const sRect = s.getBoundingClientRect();
-            const sY = sRect.top + 37;
-            const sX = sRect.left + 37;
-            
-            let targetNote = null;
-            let minDistance = Infinity;
+            const slot = document.getElementById(`s${lane}`);
+            slot.classList.add('pressed');
+            setTimeout(() => slot.classList.remove('pressed'), 100);
 
-            for(let n of activeNotes) {
-                if(!n.hit && n.lane === lane) {
-                    const nRect = n.el.getBoundingClientRect();
-                    const nY = nRect.top + 37;
-                    const nX = nRect.left + 37;
-                    const distY = Math.abs(nY - sY);
-                    const distX = Math.abs(nX - sX);
+            const hitZone = window.innerHeight - 135;
+            let note = activeNotes.find(n => n.lane == lane && !n.hit && parseFloat(n.el.style.top) > hitZone - 80);
 
-                    if(distY < 85 && distX < 40) {
-                        if (distY < minDistance) {
-                            minDistance = distY;
-                            targetNote = n;
-                        }
-                    }
-                }
-            }
-
-            if(targetNote) {
-                targetNote.hit = true;
-                targetNote.el.remove();
-                combo++;
-                if(combo > maxCombo) maxCombo = combo;
-                perfects++;
-                score += (100 * (1 + combo * 0.05));
-                updateStatus('Perfect', '#00ffcc');
+            if (note) {
+                const dist = Math.abs(parseFloat(note.el.style.top) - hitZone);
+                note.hit = true;
+                note.el.remove();
+                if (dist < 40) { score += 100; combo++; updateStatus('Perfect', '#00ffcc'); }
+                else { score += 50; combo++; updateStatus('Great', '#eab000'); }
+                if (combo > maxCombo) maxCombo = combo;
+                document.getElementById('combo-text').textContent = combo;
+                document.getElementById('combo-text').style.transform = 'scale(1.2)';
+                setTimeout(() => document.getElementById('combo-text').style.transform = 'scale(1)', 100);
             } else {
                 loseLife();
             }
-            
-            document.getElementById('combo-text').textContent = combo;
         }
 
         function loseLife() {
             lives--; misses++; combo = 0;
+            document.getElementById('combo-text').textContent = "0";
             updateLivesUI();
             updateStatus('Miss', '#ff4757');
-            if(lives <= 0) endGame(false);
+            if (lives <= 0) endGame(false);
         }
 
         function updateLivesUI() {
@@ -775,69 +755,50 @@
         function updateStatus(t, c) {
             const s = document.getElementById('status-text');
             s.textContent = t; s.style.color = c; s.style.opacity = '1';
-            setTimeout(() => { if(s.textContent === t) s.style.opacity = '0'; }, 500);
+            setTimeout(() => s.style.opacity = '0', 400);
         }
 
         function togglePause() {
-            if(isDead && !isPaused) return;
             isPaused = !isPaused;
-            if(isPaused) { audio.pause(); document.getElementById('overlay-title').textContent = "PAUSA"; } 
-            else { audio.play(); analyzeLoop(); }
+            if (isPaused) audio.pause(); else { audio.play(); requestAnimationFrame(gameLoop); }
             document.getElementById('overlay-game').style.display = isPaused ? 'flex' : 'none';
-            activeNotes.forEach(n => n.el.style.animationPlayState = isPaused ? 'paused' : 'running');
         }
 
         function restartSong() {
-            isDead = false; isPaused = false;
             activeNotes.forEach(n => n.el.remove());
             activeNotes = [];
             initGame();
-            audio.currentTime = 0;
-            audio.play();
-            analyzerActive = true;
-            analyzeLoop();
+            document.getElementById('overlay-game').style.display = 'none';
         }
 
         function endGame(win) {
             isDead = true; analyzerActive = false; audio.pause();
             document.getElementById('overlay-game').style.display = 'flex';
             document.getElementById('results-container').style.display = 'block';
-            document.getElementById('resume-btn').style.display = 'none';
-            document.getElementById('overlay-title').textContent = win ? "COMPLETADO" : "HAS PERDIDO";
-            const stars = document.querySelectorAll('.star');
-            stars.forEach(s => s.classList.remove('active'));
-            if(win) {
-                stars[0].classList.add('active');
-                if(lives === initialLives) stars[1].classList.add('active');
-                if(misses === 0) stars[2].classList.add('active');
-            }
+            document.getElementById('overlay-title').textContent = win ? "FIN" : "FALLASTE";
             document.getElementById('res-score').textContent = Math.floor(score);
             document.getElementById('res-combo').textContent = maxCombo;
             document.getElementById('res-perfect').textContent = perfects;
             document.getElementById('res-miss').textContent = misses;
         }
 
-        audio.ontimeupdate = () => {
-            document.getElementById('progress-bar').style.width = `${(audio.currentTime / songs[selectedSongIndex].duration) * 100}%`;
-        };
-        audio.onended = () => endGame(true);
-
         window.addEventListener('keydown', (e) => {
             const k = e.key.toLowerCase();
             if (captureIndex !== -1) {
                 gameKeys[captureIndex] = k;
                 document.getElementById(`cfg-${captureIndex}`).textContent = k;
-                document.getElementById(`cfg-${captureIndex}`).classList.remove('waiting');
                 captureIndex = -1;
                 return;
             }
-            if (e.key === 'Enter' && (isPaused || isDead)) { restartSong(); return; }
-            if (e.key === 'Escape' || e.code === 'Escape') { togglePause(); return; }
             const idx = gameKeys.indexOf(k);
-            if(idx !== -1) handleInput(idx);
+            if (idx !== -1) handleInput(idx);
+            if (e.key === 'Escape') togglePause();
         });
 
-        document.getElementById('vol-range').oninput = (e) => audio.volume = e.target.value;
+        audio.ontimeupdate = () => {
+            document.getElementById('progress-bar').style.width = `${(audio.currentTime / audio.duration) * 100}%`;
+        };
+        audio.onended = () => endGame(true);
 
         loadSavedSettings();
         initSongList();
