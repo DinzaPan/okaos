@@ -163,6 +163,8 @@
 
         .song-info h3 { font-size: 1.2rem; margin-bottom: 5px; }
         .song-info p { color: #888; font-size: 0.85rem; }
+        .song-info .best-score { font-size: 0.75rem; color: #2ed573; margin-top: 4px; display: block; }
+        .song-card.completed { border-left: 5px solid #2ed573; }
         .diff-tag { font-size: 0.7rem; background: #ff4757; color: white; padding: 2px 8px; border-radius: 5px; margin-left: 10px; vertical-align: middle; }
         .hard-tag { background: #6c5ce7; }
         .boost-tag { background: #00d2ff; }
@@ -424,6 +426,33 @@
 
         .overlay-title { font-size: 2.5rem; font-weight: 700; margin-bottom: 30px; text-align: center; }
 
+        .results-panel {
+            background: var(--glass);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 20px;
+            width: 100%;
+            text-align: center;
+        }
+
+        .results-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .res-item span { display: block; font-size: 0.8rem; color: #888; }
+        .res-item b { font-size: 1.4rem; }
+        
+        .grade-display {
+            font-size: 4.5rem;
+            font-weight: 700;
+            margin: 10px 0;
+            text-shadow: 0 0 20px currentColor;
+        }
+
         @keyframes noteFall {
             from { transform: translateY(-100px); }
             to { transform: translateY(calc(100vh + 100px)); }
@@ -465,57 +494,7 @@
 
     <div id="song-selection">
         <h2 class="settings-title">Selecciona una Canción</h2>
-        <div class="song-list">
-            <div class="song-card" onclick="selectSong(0)">
-                <div class="song-info">
-                    <h3>El Cuarteto de Nos - Puertas</h3>
-                    <p>Duración: 3:48</p>
-                </div>
-                <svg viewBox="0 0 24 24" width="30" height="30" fill="white"><path d="M8 5v14l11-7z"/></svg>
-            </div>
-            <div class="song-card" onclick="selectSong(1)">
-                <div class="song-info">
-                    <h3>ART OF GUITAR <span class="diff-tag">Nueva Dificultad</span></h3>
-                    <p>Duración: 2:23</p>
-                </div>
-                <svg viewBox="0 0 24 24" width="30" height="30" fill="white"><path d="M8 5v14l11-7z"/></svg>
-            </div>
-            <div class="song-card" onclick="selectSong(2)">
-                <div class="song-info">
-                    <h3>Unlike Pluto - Everything Black</h3>
-                    <p>Duración: 3:49</p>
-                </div>
-                <svg viewBox="0 0 24 24" width="30" height="30" fill="white"><path d="M8 5v14l11-7z"/></svg>
-            </div>
-            <div class="song-card" onclick="selectSong(3)">
-                <div class="song-info">
-                    <h3>System Of A Down - Chop Suey!</h3>
-                    <p>Duración: 3:28</p>
-                </div>
-                <svg viewBox="0 0 24 24" width="30" height="30" fill="white"><path d="M8 5v14l11-7z"/></svg>
-            </div>
-            <div class="song-card" onclick="selectSong(4)">
-                <div class="song-info">
-                    <h3>Adoウタカタララバイウタ ONE PIECE <span class="diff-tag hard-tag">Difícil</span></h3>
-                    <p>Duración: 3:13</p>
-                </div>
-                <svg viewBox="0 0 24 24" width="30" height="30" fill="white"><path d="M8 5v14l11-7z"/></svg>
-            </div>
-            <div class="song-card" onclick="selectSong(5)">
-                <div class="song-info">
-                    <h3>Big Metra Pañuelito Rojo <span class="diff-tag boost-tag">Potenciado</span></h3>
-                    <p>Duración: 3:36</p>
-                </div>
-                <svg viewBox="0 0 24 24" width="30" height="30" fill="white"><path d="M8 5v14l11-7z"/></svg>
-            </div>
-            <div class="song-card" onclick="selectSong(6)">
-                <div class="song-info">
-                    <h3>BIG METRA - TRATO DE NO TRABARME <span class="diff-tag death-tag">Muerte</span></h3>
-                    <p>Duración: 3:48</p>
-                </div>
-                <svg viewBox="0 0 24 24" width="30" height="30" fill="#ff0000"><path d="M12 2c-4.42 0-8 3.58-8 8 0 4.25 3.3 7.74 7.5 7.97V22h1v-4.03c4.2-.23 7.5-3.72 7.5-7.97 0-4.42-3.58-8-8-8zm-2.5 9c-.83 0-1.5-.67-1.5-1.5S8.67 8 9.5 8s1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm5 0c-.83 0-1.5-.67-1.5-1.5S14.17 8 15 8s1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/></svg>
-            </div>
-        </div>
+        <div class="song-list" id="main-song-list"></div>
         <button class="btn-s btn-cancel" style="margin-top:30px; width:200px" onclick="hideSongSelection()">Volver</button>
     </div>
 
@@ -589,6 +568,17 @@
 
     <div id="overlay">
         <h2 id="overlay-title" class="overlay-title">Pausa</h2>
+        <div id="results-container" style="display: none; width: 100%;">
+            <div class="results-panel">
+                <div class="grade-display" id="res-grade">S</div>
+                <div class="results-grid">
+                    <div class="res-item"><span id="res-label-puntos">Puntos</span><b id="res-score">0</b></div>
+                    <div class="res-item"><span>Combo Máx.</span><b id="res-combo">0</b></div>
+                    <div class="res-item"><span>Perfect</span><b id="res-perfect">0</b></div>
+                    <div class="res-item"><span>Fallos</span><b id="res-miss">0</b></div>
+                </div>
+            </div>
+        </div>
         <div class="overlay-menu">
             <div class="nav-item active" id="resume-btn" onclick="togglePause()">
                 <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg> Reanudar (Enter)
@@ -620,17 +610,21 @@
         const livesUI = document.getElementById('lives-ui');
         
         const songs = [
-            { name: "Puertas", artist: "El Cuarteto de Nos", path: "music/puertas.mp3", duration: 228, diff: 180 },
-            { name: "ART OF GUITAR", artist: "Marcin, RJ Pasin", path: "music/marcin.mp3", duration: 143, diff: 155 },
-            { name: "Everything Black", artist: "Unlike Pluto", path: "music/unlike.mp3", duration: 229, diff: 180 },
-            { name: "Chop Suey!", artist: "System Of A Down", path: "music/system.mp3", duration: 208, diff: 170 },
-            { name: "Adoウタカタララバイウタ ONE PIECE", artist: "Ado", path: "music/onepiece.mp3", duration: 193, diff: 135 },
-            { name: "Big Metra Pañuelito Rojo", artist: "Big Metra", path: "music/bigmetra.mp3", duration: 216, diff: 110, boosted: true },
-            { name: "BIG METRA - TRATO DE NO TRABARME", artist: "Big Metra", path: "music/bigmetra2.mp3", duration: 228, diff: 100, death: true }
+            { id: 0, name: "Puertas", artist: "El Cuarteto de Nos", path: "music/puertas.mp3", duration: 228, diff: 180 },
+            { id: 1, name: "ART OF GUITAR", artist: "Marcin, RJ Pasin", path: "music/marcin.mp3", duration: 143, diff: 155 },
+            { id: 2, name: "Everything Black", artist: "Unlike Pluto", path: "music/unlike.mp3", duration: 229, diff: 180 },
+            { id: 3, name: "Chop Suey!", artist: "System Of A Down", path: "music/system.mp3", duration: 208, diff: 170 },
+            { id: 4, name: "Adoウタカタララバイウタ ONE PIECE", artist: "Ado", path: "music/onepiece.mp3", duration: 193, diff: 135 },
+            { id: 5, name: "Big Metra Pañuelito Rojo", artist: "Big Metra", path: "music/bigmetra.mp3", duration: 216, diff: 110, boosted: true },
+            { id: 6, name: "BIG METRA - TRATO DE NO TRABARME", artist: "Big Metra", path: "music/bigmetra2.mp3", duration: 228, diff: 85, death: true }
         ];
 
         let selectedSongIndex = 0;
         let combo = 0;
+        let maxCombo = 0;
+        let score = 0;
+        let perfects = 0;
+        let misses = 0;
         let lives = 3;
         let isPaused = false;
         let isDead = false;
@@ -653,8 +647,38 @@
                 audio.volume = parseFloat(savedVol);
                 document.getElementById('vol-range').value = savedVol;
             }
+            renderSongList();
         }
-        loadConfig();
+
+        function renderSongList() {
+            const list = document.getElementById('main-song-list');
+            list.innerHTML = '';
+            const completions = JSON.parse(localStorage.getItem('completedSongs') || '{}');
+            
+            songs.forEach((s, i) => {
+                const compData = completions[s.id];
+                const card = document.createElement('div');
+                card.className = `song-card ${compData ? 'completed' : ''}`;
+                card.onclick = () => selectSong(i);
+                
+                let diffHtml = '';
+                if(s.death) diffHtml = '<span class="diff-tag death-tag">Muerte</span>';
+                else if(s.boosted) diffHtml = '<span class="diff-tag boost-tag">Potenciado</span>';
+                else if(s.diff < 150) diffHtml = '<span class="diff-tag hard-tag">Difícil</span>';
+
+                card.innerHTML = `
+                    <div class="song-info">
+                        <h3>${s.name} ${diffHtml}</h3>
+                        <p>Artista: ${s.artist}</p>
+                        ${compData ? `<span class="best-score">Mejor: ${compData.score} pts (${compData.grade})</span>` : ''}
+                    </div>
+                    <svg viewBox="0 0 24 24" width="30" height="30" fill="${s.death ? '#ff0000' : 'white'}">
+                        <path d="M8 5v14l11-7z"/>
+                    </svg>
+                `;
+                list.appendChild(card);
+            });
+        }
 
         function showSongSelection() { songSelect.style.display = 'flex'; }
         function hideSongSelection() { songSelect.style.display = 'none'; }
@@ -726,17 +750,17 @@
             let energy = fullSum / dataArray.length;
             
             const song = songs[selectedSongIndex];
-            currentFallSpeed = song.death ? 1.5 : (song.boosted ? Math.max(1.0, 2.0 - (energy / 80)) : Math.max(1.2, 3.0 - (energy / 60)));
+            currentFallSpeed = song.death ? 1.4 : (song.boosted ? Math.max(0.9, 1.8 - (energy / 80)) : Math.max(1.1, 2.8 - (energy / 60)));
             
             const now = Date.now();
             const threshold = song.diff;
-            const minInterval = song.death ? 80 : (song.boosted ? (energy > 80 ? 100 : 200) : (energy > 80 ? 180 : 350));
+            const minInterval = song.death ? 75 : (song.boosted ? (energy > 80 ? 95 : 180) : (energy > 80 ? 170 : 340));
             
             if (bassIntensity > threshold && (now - lastBeatTime) > minInterval) { 
                 lastBeatTime = now; 
                 spawnNote(Math.floor(Math.random() * 4)); 
-                if((song.boosted || song.death) && energy > 100 && Math.random() > 0.5) {
-                    setTimeout(() => spawnNote(Math.floor(Math.random() * 4)), song.death ? 50 : 80);
+                if((song.boosted || song.death) && energy > 100 && Math.random() > 0.4) {
+                    setTimeout(() => spawnNote(Math.floor(Math.random() * 4)), song.death ? 45 : 75);
                 }
             }
         }
@@ -761,7 +785,6 @@
             }
 
             h.forEach(x => x.style.opacity = '0'); await wait(400);
-            
             msg.textContent = song.death ? "1 Vida" : "3 Vidas"; 
             msg.style.opacity = '1'; msg.style.transform = 'translateY(0)'; await wait(1200);
             msg.style.opacity = '0'; await wait(400);
@@ -778,16 +801,65 @@
             isPaused = false; 
             lives = song.death ? 1 : 3; 
             combo = 0; 
+            maxCombo = 0;
+            score = 0;
+            perfects = 0;
+            misses = 0;
             lastBeatTime = 0; 
             activeNotes.forEach(n => n.el.remove()); 
             activeNotes = []; 
             comboEl.textContent = "0"; 
             progressBar.style.width = '0%'; 
+            document.getElementById('results-container').style.display = 'none';
             updateLivesUI(); 
         }
 
-        audio.ontimeupdate = () => { const song = songs[selectedSongIndex]; progressBar.style.width = `${(audio.currentTime / song.duration) * 100}%`; };
-        audio.onended = () => { isDead = true; analyzerActive = false; activeNotes.forEach(n => n.el.remove()); activeNotes = []; showOverlay("¡Completado!", false); setTimeout(() => goHome(), 3000); };
+        audio.ontimeupdate = () => { 
+            const song = songs[selectedSongIndex]; 
+            progressBar.style.width = `${(audio.currentTime / song.duration) * 100}%`; 
+        };
+
+        audio.onended = () => { 
+            isDead = true; 
+            analyzerActive = false; 
+            activeNotes.forEach(n => n.el.remove()); 
+            activeNotes = []; 
+            showResults();
+        };
+
+        function showResults() {
+            const totalHits = perfects + misses;
+            const accuracy = totalHits > 0 ? (perfects / totalHits) * 100 : 0;
+            let grade = 'F';
+            let color = '#ff4757';
+
+            if(accuracy >= 98) { grade = 'SS'; color = '#eab000'; }
+            else if(accuracy >= 93) { grade = 'S'; color = '#00d2ff'; }
+            else if(accuracy >= 85) { grade = 'A'; color = '#2ed573'; }
+            else if(accuracy >= 70) { grade = 'B'; color = '#3742fa'; }
+            else if(accuracy >= 50) { grade = 'C'; color = '#888'; }
+
+            document.getElementById('res-grade').textContent = grade;
+            document.getElementById('res-grade').style.color = color;
+            document.getElementById('res-score').textContent = score;
+            document.getElementById('res-combo').textContent = maxCombo;
+            document.getElementById('res-perfect').textContent = perfects;
+            document.getElementById('res-miss').textContent = misses;
+            document.getElementById('res-label-puntos').textContent = "Puntuación";
+
+            const songId = songs[selectedSongIndex].id;
+            const completions = JSON.parse(localStorage.getItem('completedSongs') || '{}');
+            if(!completions[songId] || score > completions[songId].score) {
+                completions[songId] = { score, grade };
+                localStorage.setItem('completedSongs', JSON.stringify(completions));
+                renderSongList();
+            }
+
+            overlay.style.display = 'flex';
+            document.getElementById('results-container').style.display = 'block';
+            document.getElementById('overlay-title').textContent = "Finish";
+            document.getElementById('resume-btn').style.display = 'none';
+        }
 
         function spawnNote(lane) {
             if (isDead || isPaused) return;
@@ -808,7 +880,7 @@
             if(event) { event.stopPropagation(); event.preventDefault(); }
             if(isPaused || isDead) return;
             const s = document.getElementById(`s${lane}`);
-            s.classList.add('pressed'); setTimeout(() => s.classList.remove('pressed'), 80);
+            s.classList.add('pressed'); setTimeout(() => s.classList.remove('pressed'), 60);
             const sRect = s.getBoundingClientRect();
             const sY = sRect.top + (sRect.height / 2);
             let hitFound = false;
@@ -818,10 +890,20 @@
                     const nRect = n.el.getBoundingClientRect();
                     const nY = nRect.top + (nRect.height / 2);
                     const d = Math.abs(nY - sY);
-                    if(d < 120) {
+                    if(d < 110) {
                         hitFound = true; n.hit = true; n.el.style.display = 'none';
-                        if(d < 45) { combo++; updateStatus('Perfect', '#00ffcc'); }
-                        else { combo++; updateStatus('Comun', '#ffcc00'); }
+                        if(d < 40) { 
+                            combo++; 
+                            score += (100 * (1 + combo * 0.1));
+                            perfects++;
+                            updateStatus('Perfect', '#00ffcc'); 
+                        }
+                        else { 
+                            combo++; 
+                            score += (50 * (1 + combo * 0.05));
+                            updateStatus('Bien', '#ffcc00'); 
+                        }
+                        if(combo > maxCombo) maxCombo = combo;
                         break;
                     }
                 }
@@ -833,11 +915,33 @@
         function loseLife() { 
             if(isDead) return;
             lives--; 
+            misses++;
             updateLivesUI(); 
-            if(lives <= 0) { isDead = true; analyzerActive = false; audio.pause(); showOverlay("Game Over", false); } 
+            if(lives <= 0) { 
+                isDead = true; 
+                analyzerActive = false; 
+                audio.pause(); 
+                showGameOver(); 
+            } 
             updateStatus('Miss', '#ff4757'); 
             combo = 0; 
             comboEl.textContent = "0"; 
+        }
+
+        function showGameOver() {
+            document.getElementById('res-grade').textContent = "F";
+            document.getElementById('res-grade').style.color = "#ff4757";
+            document.getElementById('res-score').textContent = score;
+            document.getElementById('res-combo').textContent = maxCombo;
+            document.getElementById('res-perfect').textContent = perfects;
+            document.getElementById('res-miss').textContent = misses;
+            document.getElementById('res-label-puntos').textContent = "Puntuación Final";
+            
+            overlay.style.display = 'flex';
+            document.getElementById('results-container').style.display = 'block';
+            document.getElementById('overlay-title').textContent = "Game Over";
+            document.getElementById('resume-btn').style.display = 'none';
+            document.getElementById('restart-btn').textContent = "Reintentar (Enter)";
         }
 
         function updateLivesUI() { 
@@ -853,11 +957,13 @@
             }
         }
 
-        function togglePause() { if(isDead) return; isPaused = !isPaused; if(isPaused) audio.pause(); else audio.play(); if(isPaused) showOverlay("Pausa", true); else overlay.style.display = 'none'; activeNotes.forEach(n => n.el.style.animationPlayState = isPaused ? 'paused' : 'running'); }
-        function showOverlay(title, showControls) { overlay.style.display = 'flex'; document.getElementById('overlay-title').textContent = title; document.getElementById('resume-btn').style.display = showControls ? 'flex' : 'none'; document.getElementById('settings-btn').style.display = showControls ? 'flex' : 'none'; document.getElementById('restart-btn').textContent = showControls ? "Reiniciar" : "Reintentar (Enter)"; }
+        function togglePause() { if(isDead) return; isPaused = !isPaused; if(isPaused) audio.pause(); else audio.play(); if(isPaused) { showOverlay("Pausa", true); document.getElementById('results-container').style.display = 'none'; } else overlay.style.display = 'none'; activeNotes.forEach(n => n.el.style.animationPlayState = isPaused ? 'paused' : 'running'); }
+        function showOverlay(title, showControls) { overlay.style.display = 'flex'; document.getElementById('overlay-title').textContent = title; document.getElementById('resume-btn').style.display = showControls ? 'flex' : 'none'; document.getElementById('settings-btn').style.display = showControls ? 'flex' : 'none'; }
         function restartGame() { overlay.style.display = 'none'; initGame(); audio.currentTime = 0; audio.play(); analyzerActive = true; analyzeLoop(); }
         function goHome() { location.reload(); }
         function updateStatus(t, c) { statusEl.textContent = t; statusEl.style.color = c; statusEl.style.opacity = '1'; setTimeout(() => statusEl.style.opacity = '0', 400); }
+        
+        loadConfig();
     </script>
 </body>
 </html>
