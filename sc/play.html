@@ -8,71 +8,168 @@
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; user-select: none; touch-action: none; }
         :root {
-            --bg: #020205; --accent: #ffffff; --border: rgba(255, 255, 255, 0.1);
-            --k1: #ff3e3e; --k2: #3e86ff; --k3: #3eff86; --k4: #ffcc3e;
+            --bg: #020205;
+            --accent: #ffffff;
+            --border: rgba(255, 255, 255, 0.1);
+            --k1: #ff3e3e;
+            --k2: #3e86ff;
+            --k3: #3eff86;
+            --k4: #ffcc3e;
         }
         body {
-            font-family: 'Fredoka', sans-serif; height: 100vh; width: 100vw;
-            background: var(--bg); color: white; overflow: hidden;
+            font-family: 'Fredoka', sans-serif;
+            height: 100vh;
+            width: 100vw;
+            background: var(--bg);
+            color: white;
+            overflow: hidden;
         }
 
         #intro-screen {
-            position: fixed; inset: 0; background: #000; z-index: 1000;
-            display: flex; justify-content: center; align-items: center; flex-direction: column;
+            position: fixed;
+            inset: 0;
+            background: #000;
+            z-index: 1000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
         }
-        .intro-msg { font-size: 5rem; font-weight: 700; transform: scale(0.5); opacity: 0; transition: 0.4s; }
+        .intro-msg { font-size: 6rem; font-weight: 700; transform: scale(0.5); opacity: 0; transition: 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
 
-        #ui-layer { width: 100%; height: 100%; display: none; flex-direction: column; align-items: center; position: relative; }
+        #ui-layer {
+            width: 100%;
+            height: 100%;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+            background: radial-gradient(circle at bottom, #111122 0%, #020205 100%);
+        }
         
         .progress-container {
-            position: absolute; top: 0; left: 0; width: 100%; height: 6px; background: rgba(255,255,255,0.1);
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 8px;
+            background: rgba(255,255,255,0.05);
         }
-        #progress-bar { width: 0%; height: 100%; background: #fff; transition: 0.1s linear; }
+        #progress-bar { width: 0%; height: 100%; background: linear-gradient(90deg, #ff66aa, #fff); box-shadow: 0 0 15px #ff66aa; }
 
         .stats-panel { position: absolute; top: 40px; left: 40px; }
-        .combo-text { font-size: 4rem; font-weight: 700; }
-        .score-text { font-size: 1.5rem; opacity: 0.7; }
+        .combo-text { font-size: 4.5rem; font-weight: 700; text-shadow: 0 0 20px rgba(255,255,255,0.2); }
+        .score-text { font-size: 1.8rem; opacity: 0.6; letter-spacing: 2px; }
+
+        .lives-container {
+            position: absolute;
+            top: 40px;
+            right: 40px;
+            display: flex;
+            gap: 10px;
+        }
+        .life-heart { width: 40px; height: 40px; fill: #ff3e3e; filter: drop-shadow(0 0 5px #ff3e3e); transition: 0.3s; }
 
         .game-track {
-            width: 500px; height: 100%; border-left: 2px solid var(--border); border-right: 2px solid var(--border);
-            background: linear-gradient(to bottom, transparent, rgba(255,255,255,0.02));
+            width: 550px;
+            height: 100%;
+            border-left: 3px solid var(--border);
+            border-right: 3px solid var(--border);
+            background: linear-gradient(to bottom, transparent, rgba(255,255,255,0.03));
             position: relative;
         }
 
         .receptor-zone {
-            position: absolute; bottom: 100px; width: 100%; display: flex; justify-content: center; gap: 20px;
+            position: absolute;
+            bottom: 120px;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            gap: 25px;
         }
         .key-rec {
-            width: 85px; height: 85px; border: 4px solid var(--border); border-radius: 25px;
-            display: flex; justify-content: center; align-items: center; transition: 0.05s;
+            width: 90px;
+            height: 90px;
+            border: 4px solid var(--border);
+            border-radius: 22px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: 0.05s;
+            background: rgba(255,255,255,0.02);
         }
-        #rec0.hit { background: var(--k1); box-shadow: 0 0 40px var(--k1); border-color: #fff; }
-        #rec1.hit { background: var(--k2); box-shadow: 0 0 40px var(--k2); border-color: #fff; }
-        #rec2.hit { background: var(--k3); box-shadow: 0 0 40px var(--k3); border-color: #fff; }
-        #rec3.hit { background: var(--k4); box-shadow: 0 0 40px var(--k4); border-color: #fff; }
+        .key-rec svg { width: 50px; height: 50px; fill: rgba(255,255,255,0.2); transition: 0.1s; }
+
+        #rec0.hit { background: var(--k1); box-shadow: 0 0 50px var(--k1); border-color: #fff; }
+        #rec1.hit { background: var(--k2); box-shadow: 0 0 50px var(--k2); border-color: #fff; }
+        #rec2.hit { background: var(--k3); box-shadow: 0 0 50px var(--k3); border-color: #fff; }
+        #rec3.hit { background: var(--k4); box-shadow: 0 0 50px var(--k4); border-color: #fff; }
+        .key-rec.hit svg { fill: #fff; transform: scale(1.2); }
 
         .note {
-            position: absolute; width: 75px; height: 75px; background: #fff; border-radius: 20px;
-            z-index: 5; animation: falling 2s linear forwards;
+            position: absolute;
+            width: 80px;
+            height: 80px;
+            border-radius: 20px;
+            z-index: 5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.5);
+            animation: falling 2s linear forwards;
         }
+        .note svg { width: 50px; height: 50px; fill: #fff; }
+
         @keyframes falling { from { transform: translateY(-100px); } to { transform: translateY(110vh); } }
 
         .judgment {
-            position: absolute; top: 60%; left: 50%; transform: translate(-50%, -50%);
-            font-size: 2.5rem; font-weight: 700; pointer-events: none; opacity: 0;
+            position: absolute;
+            top: 55%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 3rem;
+            font-weight: 700;
+            pointer-events: none;
+            opacity: 0;
+            text-shadow: 0 0 15px currentColor;
         }
         .animate-judge { animation: judgePop 0.4s ease-out; }
-        @keyframes judgePop { 0% { opacity: 0; transform: translate(-50%, -20%) scale(1.5); } 50% { opacity: 1; } 100% { opacity: 0; transform: translate(-50%, -80%) scale(1); } }
+        @keyframes judgePop { 0% { opacity: 0; transform: translate(-50%, 0%) scale(1.8); } 50% { opacity: 1; } 100% { opacity: 0; transform: translate(-50%, -100%) scale(1); } }
 
-        #result-screen {
-            position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 2000;
-            display: none; flex-direction: column; justify-content: center; align-items: center; gap: 20px;
+        #overlay-screen {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.96);
+            z-index: 2000;
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            gap: 20px;
         }
-        .win-btn {
-            width: 300px; padding: 25px; border-radius: 20px; border: 1px solid #fff;
-            background: transparent; color: white; font-size: 1.2rem; font-weight: 700; cursor: pointer;
+        .btn-ui {
+            width: 320px;
+            padding: 22px;
+            border-radius: 20px;
+            border: 2px solid #fff;
+            background: transparent;
+            color: white;
+            font-size: 1.3rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: 0.3s;
         }
-        .win-btn:hover { background: #fff; color: #000; }
+        .btn-ui:hover { background: #fff; color: #000; transform: scale(1.05); }
+
+        .pause-icon {
+            position: absolute;
+            top: 40px;
+            right: 200px;
+            cursor: pointer;
+            opacity: 0.5;
+            transition: 0.3s;
+        }
+        .pause-icon:hover { opacity: 1; transform: scale(1.1); }
     </style>
 </head>
 <body>
@@ -91,41 +188,60 @@
             <div class="combo-text" id="combo-val">0</div>
         </div>
 
+        <div class="lives-container" id="lives-box">
+            <svg class="life-heart" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+            <svg class="life-heart" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+            <svg class="life-heart" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+        </div>
+
+        <svg class="pause-icon" width="40" height="40" viewBox="0 0 24 24" onclick="togglePause()"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z" fill="white"/></svg>
+
         <div class="game-track" id="track">
             <div class="receptor-zone">
-                <div class="key-rec" id="rec0"></div>
-                <div class="key-rec" id="rec1"></div>
-                <div class="key-rec" id="rec2"></div>
-                <div class="key-rec" id="rec3"></div>
+                <div class="key-rec" id="rec0"><svg viewBox="0 0 24 24"><path d="M15.41 16.59L10.83 12l4.58-4.59L14 6l-6 6 6 6 1.41-1.41z"/></svg></div>
+                <div class="key-rec" id="rec1"><svg viewBox="0 0 24 24"><path d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z"/></svg></div>
+                <div class="key-rec" id="rec2"><svg viewBox="0 0 24 24"><path d="M16.59 8.59L12 13.17 7.41 8.59 6 10l6 6 6-6z"/></svg></div>
+                <div class="key-rec" id="rec3"><svg viewBox="0 0 24 24"><path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6z"/></svg></div>
             </div>
         </div>
 
         <div id="judge-text" class="judgment">PERFECT</div>
     </div>
 
-    <div id="result-screen">
-        <h1 id="res-msg" style="font-size: 4rem; margin-bottom: 20px;">¡FINISH!</h1>
-        <div style="text-align: center; margin-bottom: 30px;">
-            <p id="final-score" style="font-size: 2rem;"></p>
-            <p id="final-combo" style="color: #aaa;"></p>
-        </div>
-        <button class="win-btn" onclick="location.reload()">REINTENTAR</button>
-        <button class="win-btn" onclick="location.href='../index.html'">VOLVER AL INICIO</button>
+    <div id="overlay-screen">
+        <h1 id="over-title" style="font-size: 4rem;">PAUSA</h1>
+        <p id="over-stats" style="margin-bottom: 20px; opacity: 0.7;"></p>
+        <button class="btn-ui" id="btn-resume" onclick="togglePause()">CONTINUAR</button>
+        <button class="btn-ui" onclick="location.reload()">REINTENTAR</button>
+        <button class="btn-ui" onclick="location.href='../index.html'">INICIO</button>
     </div>
 
     <script>
         const audio = document.getElementById('music-player');
-        const keys = ['a', 's', 'k', 'l'];
+        const track = document.getElementById('track');
+        let keys = ['a', 's', 'k', 'l'];
         let score = 0;
         let combo = 0;
+        let lives = 3;
         let activeNotes = [];
         let gameActive = false;
+        let isPaused = false;
+
+        const colors = ['#ff3e3e', '#3e86ff', '#3eff86', '#ffcc3e'];
+        const icons = [
+            '<path d="M15.41 16.59L10.83 12l4.58-4.59L14 6l-6 6 6 6 1.41-1.41z"/>',
+            '<path d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z"/>',
+            '<path d="M16.59 8.59L12 13.17 7.41 8.59 6 10l6 6 6-6z"/>',
+            '<path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6z"/>'
+        ];
 
         async function init() {
-            const songPath = localStorage.getItem('selectedSong');
-            if(!songPath) return location.href = '../index.html';
+            const song = localStorage.getItem('selectedSong');
+            const savedKeys = localStorage.getItem('okao_keys');
+            if(savedKeys) keys = JSON.parse(savedKeys);
             
-            audio.src = '../' + songPath;
+            if(!song) return location.href = '../index.html';
+            audio.src = '../' + song;
             audio.volume = localStorage.getItem('okao_vol') || 1;
 
             const steps = ["3", "2", "1", "¡GO!"];
@@ -135,9 +251,9 @@
                 intro.textContent = s;
                 intro.style.opacity = '1';
                 intro.style.transform = 'scale(1.2)';
-                await new Promise(r => setTimeout(r, 800));
+                await new Promise(r => setTimeout(r, 700));
                 intro.style.opacity = '0';
-                intro.style.transform = 'scale(0.5)';
+                intro.style.transform = 'scale(0.6)';
                 await new Promise(r => setTimeout(r, 100));
             }
 
@@ -150,14 +266,14 @@
         }
 
         function gameLoop() {
-            if(!gameActive) return;
+            if(!gameActive || isPaused) return;
             
             const progress = (audio.currentTime / audio.duration) * 100;
             document.getElementById('progress-bar').style.width = progress + '%';
 
-            if(Math.random() > 0.96) spawnNote(Math.floor(Math.random() * 4));
+            if(Math.random() > 0.95) spawnNote(Math.floor(Math.random() * 4));
 
-            if(audio.ended) finishGame();
+            if(audio.ended) finish("¡FINISH!");
             
             requestAnimationFrame(gameLoop);
         }
@@ -165,9 +281,13 @@
         function spawnNote(lane) {
             const n = document.createElement('div');
             n.className = 'note';
+            n.style.backgroundColor = colors[lane];
+            n.style.boxShadow = `0 0 20px ${colors[lane]}`;
+            n.innerHTML = `<svg viewBox="0 0 24 24">${icons[lane]}</svg>`;
+            
             const target = document.getElementById('rec' + lane);
             n.style.left = target.offsetLeft + 'px';
-            document.getElementById('track').appendChild(n);
+            track.appendChild(n);
 
             const noteObj = { el: n, lane: lane, hit: false };
             activeNotes.push(noteObj);
@@ -175,15 +295,26 @@
             n.addEventListener('animationend', () => {
                 if(!noteObj.hit) {
                     combo = 0;
-                    updateStats();
+                    lives--;
+                    updateLives();
+                    showJudge("MISS", "#ff3e3e");
+                    if(lives <= 0) finish("GAME OVER");
                 }
                 n.remove();
                 activeNotes = activeNotes.filter(x => x !== noteObj);
             });
         }
 
+        function updateLives() {
+            const hearts = document.querySelectorAll('.life-heart');
+            hearts.forEach((h, i) => {
+                h.style.opacity = i < lives ? '1' : '0.1';
+                h.style.transform = i < lives ? 'scale(1)' : 'scale(0.8)';
+            });
+        }
+
         window.onkeydown = (e) => {
-            if(!gameActive) return;
+            if(!gameActive || isPaused) return;
             const idx = keys.indexOf(e.key.toLowerCase());
             if(idx !== -1) {
                 const rec = document.getElementById('rec' + idx);
@@ -192,37 +323,35 @@
 
                 const hitNote = activeNotes.find(n => n.lane === idx && !n.hit);
                 if(hitNote) {
-                    const rect = hitNote.el.getBoundingClientRect();
-                    const recRect = rec.getBoundingClientRect();
-                    const dist = Math.abs(rect.top - recRect.top);
+                    const nRect = hitNote.el.getBoundingClientRect();
+                    const rRect = rec.getBoundingClientRect();
+                    const dist = Math.abs(nRect.top - rRect.top);
 
-                    if(dist < 80) {
+                    if(dist < 90) {
                         hitNote.hit = true;
                         hitNote.el.style.display = 'none';
-                        processHit(dist);
+                        if(dist < 40) {
+                            score += 300;
+                            combo++;
+                            showJudge("PERFECT", "#3eff86");
+                        } else {
+                            score += 100;
+                            combo++;
+                            showJudge("COMÚN", "#ffffff");
+                        }
+                        updateStats();
                     }
                 }
             }
         };
 
-        function processHit(d) {
-            const judge = document.getElementById('judge-text');
-            judge.classList.remove('animate-judge');
-            void judge.offsetWidth; 
-            
-            if(d < 30) {
-                judge.textContent = "PERFECT";
-                judge.style.color = "#3eff86";
-                score += 300;
-            } else {
-                judge.textContent = "COMÚN";
-                judge.style.color = "#ffffff";
-                score += 100;
-            }
-            
-            combo++;
-            judge.classList.add('animate-judge');
-            updateStats();
+        function showJudge(txt, col) {
+            const j = document.getElementById('judge-text');
+            j.textContent = txt;
+            j.style.color = col;
+            j.classList.remove('animate-judge');
+            void j.offsetWidth;
+            j.classList.add('animate-judge');
         }
 
         function updateStats() {
@@ -230,11 +359,32 @@
             document.getElementById('combo-val').textContent = combo;
         }
 
-        function finishGame() {
+        function togglePause() {
+            if(lives <= 0 || audio.ended) return;
+            isPaused = !isPaused;
+            const overlay = document.getElementById('overlay-screen');
+            overlay.style.display = isPaused ? 'flex' : 'none';
+            document.getElementById('over-title').textContent = "PAUSA";
+            document.getElementById('btn-resume').style.display = 'block';
+            
+            if(isPaused) {
+                audio.pause();
+                document.querySelectorAll('.note').forEach(n => n.style.animationPlayState = 'paused');
+            } else {
+                audio.play();
+                document.querySelectorAll('.note').forEach(n => n.style.animationPlayState = 'running');
+                gameLoop();
+            }
+        }
+
+        function finish(msg) {
             gameActive = false;
-            document.getElementById('result-screen').style.display = 'flex';
-            document.getElementById('final-score').textContent = "Puntaje: " + score;
-            document.getElementById('final-combo').textContent = "Máximo Combo: " + combo;
+            audio.pause();
+            const overlay = document.getElementById('overlay-screen');
+            overlay.style.display = 'flex';
+            document.getElementById('over-title').textContent = msg;
+            document.getElementById('over-stats').textContent = `Puntaje: ${score} | Combo Máx: ${combo}`;
+            document.getElementById('btn-resume').style.display = 'none';
         }
 
         init();
