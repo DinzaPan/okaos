@@ -683,7 +683,12 @@
 
             const song = songs[selectedSongIndex];
             
-            currentDynamicSpeed = song.speed * (1 + (mids / 255) * 0.5);
+            let targetSpeed = song.speed;
+            if (mids > 180) targetSpeed = song.speed * 1.5;
+            else if (mids < 60) targetSpeed = song.speed * 0.8;
+            else targetSpeed = song.speed * (0.8 + (mids / 255));
+            
+            currentDynamicSpeed = targetSpeed;
 
             const now = Date.now();
             const cooldown = song.death ? 110 : Math.max(140, 280 - (bass * 0.8));
@@ -717,23 +722,41 @@
             if(isPaused || isDead) return;
             const s = document.getElementById(`s${lane}`);
             s.classList.add('pressed'); setTimeout(() => s.classList.remove('pressed'), 70);
-            const sY = s.getBoundingClientRect().top + 37;
-            let hit = false;
+            const sRect = s.getBoundingClientRect();
+            const sY = sRect.top + 37;
+            const sX = sRect.left + 37;
+            
+            let hitsCount = 0;
+            let hitsArray = [];
+
             for(let n of activeNotes) {
-                if(n.lane === lane && !n.hit) {
+                if(!n.hit) {
                     const nRect = n.el.getBoundingClientRect();
                     const nY = nRect.top + 37;
-                    const diff = Math.abs(nY - sY);
-                    if(diff < 85) {
-                        hit = true; n.hit = true; n.el.remove();
-                        combo++; if(combo > maxCombo) maxCombo = combo;
-                        perfects++; score += (100 * (1 + combo * 0.05));
-                        updateStatus('Perfect', '#00ffcc');
-                        break;
+                    const nX = nRect.left + 37;
+                    const distY = Math.abs(nY - sY);
+                    const distX = Math.abs(nX - sX);
+
+                    if(distY < 85 && distX < 40) {
+                        hitsArray.push(n);
                     }
                 }
             }
-            if(!hit) loseLife();
+
+            if(hitsArray.length > 0) {
+                hitsArray.forEach(n => {
+                    n.hit = true;
+                    n.el.remove();
+                    combo++;
+                    if(combo > maxCombo) maxCombo = combo;
+                    perfects++;
+                    score += (100 * (1 + combo * 0.05));
+                });
+                updateStatus(hitsArray.length > 1 ? 'Combo!' : 'Perfect', '#00ffcc');
+            } else {
+                loseLife();
+            }
+            
             document.getElementById('combo-text').textContent = combo;
         }
 
