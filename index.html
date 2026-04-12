@@ -134,7 +134,7 @@
             max-width: 600px;
             max-height: 70vh;
             overflow-y: auto;
-            padding-right: 10px;
+            padding: 10px;
         }
 
         .song-card {
@@ -157,6 +157,7 @@
 
         .song-info h3 { font-size: 1.2rem; margin-bottom: 5px; }
         .song-info p { color: #888; font-size: 0.85rem; }
+        .diff-tag { font-size: 0.7rem; background: #ff4757; color: white; padding: 2px 8px; border-radius: 5px; margin-left: 10px; vertical-align: middle; }
 
         #settings-panel {
             position: fixed;
@@ -414,26 +415,6 @@
 
         .overlay-title { font-size: 2.5rem; font-weight: 700; margin-bottom: 30px; text-align: center; }
 
-        #mission-notif {
-            position: fixed;
-            bottom: -100px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: #fff;
-            color: #000;
-            padding: 15px 30px;
-            border-radius: 50px;
-            font-weight: 700;
-            z-index: 3000;
-            transition: bottom 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        #mission-notif svg { width: 20px; height: 20px; fill: #00b894; }
-
         @keyframes noteFall {
             from { transform: translateY(-100px); }
             to { transform: translateY(calc(100vh + 100px)); }
@@ -452,11 +433,6 @@
     <div id="pc-brand">OKAOs</div>
 
     <audio id="game-audio" preload="auto" crossorigin="anonymous"></audio>
-
-    <div id="mission-notif">
-        <svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
-        <span id="notif-text">Misión Completada</span>
-    </div>
 
     <div id="main-menu">
         <div class="sidebar">
@@ -490,7 +466,7 @@
             </div>
             <div class="song-card" onclick="selectSong(1)">
                 <div class="song-info">
-                    <h3>Marcin, RJ Pasin - ART OF GUITAR</h3>
+                    <h3>ART OF GUITAR <span class="diff-tag">Nueva Dificultad</span></h3>
                     <p>Duración: 2:23</p>
                 </div>
                 <svg viewBox="0 0 24 24" width="30" height="30" fill="white"><path d="M8 5v14l11-7z"/></svg>
@@ -499,6 +475,13 @@
                 <div class="song-info">
                     <h3>Unlike Pluto - Everything Black</h3>
                     <p>Duración: 3:49</p>
+                </div>
+                <svg viewBox="0 0 24 24" width="30" height="30" fill="white"><path d="M8 5v14l11-7z"/></svg>
+            </div>
+            <div class="song-card" onclick="selectSong(3)">
+                <div class="song-info">
+                    <h3>System Of A Down - Chop Suey!</h3>
+                    <p>Duración: 3:28</p>
                 </div>
                 <svg viewBox="0 0 24 24" width="30" height="30" fill="white"><path d="M8 5v14l11-7z"/></svg>
             </div>
@@ -603,20 +586,17 @@
         const track = document.getElementById('track');
         const audio = document.getElementById('game-audio');
         const progressBar = document.getElementById('progress-bar');
-        const missionNotif = document.getElementById('mission-notif');
-        const notifText = document.getElementById('notif-text');
         const settingsPanel = document.getElementById('settings-panel');
         
         const songs = [
-            { name: "Puertas", artist: "El Cuarteto de Nos", path: "music/puertas.mp3", duration: 228 },
-            { name: "ART OF GUITAR", artist: "Marcin, RJ Pasin", path: "music/marcin.mp3", duration: 143 },
-            { name: "Everything Black", artist: "Unlike Pluto", path: "music/unlike.mp3", duration: 229 }
+            { name: "Puertas", artist: "El Cuarteto de Nos", path: "music/puertas.mp3", duration: 228, diff: 180 },
+            { name: "ART OF GUITAR", artist: "Marcin, RJ Pasin", path: "music/marcin.mp3", duration: 143, diff: 155 },
+            { name: "Everything Black", artist: "Unlike Pluto", path: "music/unlike.mp3", duration: 229, diff: 180 },
+            { name: "Chop Suey!", artist: "System Of A Down", path: "music/system.mp3", duration: 208, diff: 170 }
         ];
 
         let selectedSongIndex = 0;
         let combo = 0;
-        let totalHits = 0;
-        let perfectHits = 0;
         let lives = 3;
         let isPaused = false;
         let isDead = false;
@@ -654,18 +634,8 @@
         }
 
         function openSettings() { settingsPanel.style.display = 'flex'; }
-        
-        function closeSettings() { 
-            settingsPanel.style.display = 'none'; 
-            listeningIndex = -1;
-            document.querySelectorAll('.key-input').forEach(el => el.classList.remove('waiting'));
-        }
-
-        function listenKey(index) {
-            listeningIndex = index;
-            document.querySelectorAll('.key-input').forEach(el => el.classList.remove('waiting'));
-            document.getElementById(`k${index}`).classList.add('waiting');
-        }
+        function closeSettings() { settingsPanel.style.display = 'none'; listeningIndex = -1; document.querySelectorAll('.key-input').forEach(el => el.classList.remove('waiting')); }
+        function listenKey(index) { listeningIndex = index; document.querySelectorAll('.key-input').forEach(el => el.classList.remove('waiting')); document.getElementById(`k${index}`).classList.add('waiting'); }
 
         window.addEventListener('keydown', (e) => {
             if(listeningIndex !== -1) {
@@ -677,28 +647,14 @@
                 listeningIndex = -1;
                 return;
             }
-
-            if(e.key === 'Enter') {
-                if(isDead) handleInteraction('restart');
-                else if(isPaused) togglePause();
-            }
-
-            if(e.key === 'Escape') {
-                if(canvas.style.display === 'flex' && !isDead) togglePause();
-            }
-
+            if(e.key === 'Enter') { if(isDead) handleInteraction('restart'); else if(isPaused) togglePause(); }
+            if(e.key === 'Escape') { if(canvas.style.display === 'flex' && !isDead) togglePause(); }
             if(isDead || isPaused) return;
             const idx = gameKeys.indexOf(e.key.toLowerCase());
             if(idx !== -1) handleSlotInput(idx);
         });
 
-        function saveSettings() {
-            localStorage.setItem('gameKeys', JSON.stringify(gameKeys));
-            const vol = document.getElementById('vol-range').value;
-            audio.volume = parseFloat(vol);
-            localStorage.setItem('gameVolume', vol);
-            closeSettings();
-        }
+        function saveSettings() { localStorage.setItem('gameKeys', JSON.stringify(gameKeys)); const vol = document.getElementById('vol-range').value; audio.volume = parseFloat(vol); localStorage.setItem('gameVolume', vol); closeSettings(); }
 
         const icons = [
             '<svg viewBox="0 0 24 24"><path d="M21 3L3 21M3 21H12M3 21V12" stroke="black" stroke-width="2" fill="none"/></svg>',
@@ -718,20 +674,13 @@
                 dataArray = new Uint8Array(analyzer.frequencyBinCount);
             }
             if (audioCtx.state === 'suspended') audioCtx.resume();
-            
-            audio.play().then(() => {
-                audio.pause();
-                audio.currentTime = 0;
-                if (type === 'play') startSequence();
-                else if (type === 'restart') restartGame();
-            }).catch(e => console.log("Gesto de usuario requerido"));
+            audio.play().then(() => { audio.pause(); audio.currentTime = 0; if (type === 'play') startSequence(); else if (type === 'restart') restartGame(); }).catch(() => { if (type === 'play') startSequence(); else if (type === 'restart') restartGame(); });
         }
 
         function analyzeLoop() {
             if (!analyzerActive || isDead) return;
             requestAnimationFrame(analyzeLoop);
             if (isPaused) return;
-
             analyzer.getByteFrequencyData(dataArray);
             let sum = 0;
             for(let i = 0; i < 10; i++) sum += dataArray[i];
@@ -740,81 +689,33 @@
             for(let i = 0; i < dataArray.length; i++) fullSum += dataArray[i];
             let energy = fullSum / dataArray.length;
             currentFallSpeed = Math.max(1.2, 3.0 - (energy / 60));
-
             const now = Date.now();
-            const threshold = 180;
-            const minInterval = energy > 80 ? 250 : 500;
-
-            if (bassIntensity > threshold && (now - lastBeatTime) > minInterval) {
-                lastBeatTime = now;
-                spawnNote(Math.floor(Math.random() * 4));
-            }
+            const threshold = songs[selectedSongIndex].diff;
+            const minInterval = energy > 80 ? 200 : 400;
+            if (bassIntensity > threshold && (now - lastBeatTime) > minInterval) { lastBeatTime = now; spawnNote(Math.floor(Math.random() * 4)); }
         }
 
-        function startSequence() {
-            menu.style.opacity = '0';
-            setTimeout(() => {
-                menu.style.display = 'none';
-                intro.style.display = 'flex';
-                runIntro();
-            }, 600);
-        }
+        function startSequence() { menu.style.opacity = '0'; setTimeout(() => { menu.style.display = 'none'; intro.style.display = 'flex'; runIntro(); }, 600); }
 
         async function runIntro() {
             const h = [document.getElementById('ih1'), document.getElementById('ih2'), document.getElementById('ih3')];
             const msg = document.getElementById('intro-msg');
             const wait = ms => new Promise(r => setTimeout(r, ms));
-            
             for(let i=0; i<3; i++) { h[i].style.opacity = '1'; h[i].style.transform = 'scale(1.2)'; await wait(600); }
             h.forEach(x => x.style.opacity = '0'); await wait(400);
-            
             msg.textContent = "3 Vidas"; msg.style.opacity = '1'; msg.style.transform = 'translateY(0)'; await wait(1200);
             msg.style.opacity = '0'; await wait(400);
             msg.textContent = "¿Listo?"; msg.style.opacity = '1'; await wait(1000);
             msg.style.opacity = '0'; await wait(400);
-            msg.textContent = "¡Go!"; msg.style.opacity = '1'; 
-            
-            await wait(800);
+            msg.textContent = "¡Go!"; msg.style.opacity = '1'; await wait(800);
             intro.style.opacity = '0';
-            setTimeout(() => {
-                intro.style.display = 'none';
-                canvas.style.display = 'flex';
-                setTimeout(() => { 
-                    canvas.style.opacity = '1'; 
-                    initGame(); 
-                    analyzerActive = true;
-                    analyzeLoop();
-                    audio.play().catch(e => console.error("Error al reproducir:", e));
-                }, 50);
-            }, 400);
+            setTimeout(() => { intro.style.display = 'none'; canvas.style.display = 'flex'; setTimeout(() => { canvas.style.opacity = '1'; initGame(); analyzerActive = true; analyzeLoop(); audio.play(); }, 50); }, 400);
         }
 
-        function initGame() {
-            isDead = false; isPaused = false;
-            lives = 3; combo = 0; totalHits = 0; perfectHits = 0;
-            lastBeatTime = 0;
-            activeNotes.forEach(n => { if(n.el) n.el.remove(); });
-            activeNotes = [];
-            comboEl.textContent = "0";
-            progressBar.style.width = '0%';
-            updateLivesUI();
-        }
+        function initGame() { isDead = false; isPaused = false; lives = 3; combo = 0; lastBeatTime = 0; activeNotes.forEach(n => n.el.remove()); activeNotes = []; comboEl.textContent = "0"; progressBar.style.width = '0%'; updateLivesUI(); }
 
-        audio.ontimeupdate = () => {
-            const song = songs[selectedSongIndex];
-            const pct = (audio.currentTime / song.duration) * 100;
-            progressBar.style.width = `${pct}%`;
-        };
-
-        audio.onended = () => { finishGame(); };
-
-        function finishGame() {
-            isDead = true; analyzerActive = false;
-            activeNotes.forEach(n => { if(n.el) n.el.remove(); });
-            activeNotes = [];
-            showOverlay("¡Completado!", false);
-            setTimeout(() => { goHome(); }, 3000);
-        }
+        audio.ontimeupdate = () => { const song = songs[selectedSongIndex]; progressBar.style.width = `${(audio.currentTime / song.duration) * 100}%`; };
+        audio.onended = () => { isDead = true; analyzerActive = false; activeNotes.forEach(n => n.el.remove()); activeNotes = []; showOverlay("¡Completado!", false); setTimeout(() => goHome(), 3000); };
 
         function spawnNote(lane) {
             if (isDead || isPaused) return;
@@ -828,11 +729,7 @@
             track.appendChild(n);
             const obj = { el: n, lane, hit: false, id: Math.random() };
             activeNotes.push(obj);
-            n.addEventListener('animationend', () => {
-                if(!obj.hit && !isPaused && !isDead) loseLife();
-                n.remove();
-                activeNotes = activeNotes.filter(x => x.id !== obj.id);
-            });
+            n.addEventListener('animationend', () => { if(!obj.hit && !isPaused && !isDead) loseLife(); n.remove(); activeNotes = activeNotes.filter(x => x.id !== obj.id); });
         }
 
         function handleSlotInput(lane, event) {
@@ -840,10 +737,8 @@
             if(isPaused || isDead) return;
             const s = document.getElementById(`s${lane}`);
             s.classList.add('pressed'); setTimeout(() => s.classList.remove('pressed'), 80);
-
             const sRect = s.getBoundingClientRect();
             const sY = sRect.top + (sRect.height / 2);
-
             let hitFound = false;
             for(let i = 0; i < activeNotes.length; i++) {
                 const n = activeNotes[i];
@@ -853,8 +748,7 @@
                     const d = Math.abs(nY - sY);
                     if(d < 120) {
                         hitFound = true; n.hit = true; n.el.style.display = 'none';
-                        totalHits++;
-                        if(d < 45) { combo++; perfectHits++; updateStatus('Perfect', '#00ffcc'); }
+                        if(d < 45) { combo++; updateStatus('Perfect', '#00ffcc'); }
                         else { combo++; updateStatus('Comun', '#ffcc00'); }
                         break;
                     }
@@ -864,51 +758,13 @@
             comboEl.textContent = combo;
         }
 
-        function loseLife() {
-            if(isDead) return;
-            lives--; updateLivesUI();
-            updateStatus('Miss', '#ff4757');
-            combo = 0; comboEl.textContent = "0";
-            if(lives <= 0) gameOver();
-        }
-
-        function updateLivesUI() {
-            const hearts = document.querySelectorAll('.life-heart');
-            hearts.forEach((h, i) => { h.style.opacity = i < lives ? '1' : '0.1'; });
-        }
-
-        function togglePause() {
-            if(isDead) return;
-            isPaused = !isPaused;
-            if(isPaused) audio.pause(); else audio.play();
-            if(isPaused) showOverlay("Pausa", true); else overlay.style.display = 'none';
-            activeNotes.forEach(n => n.el.style.animationPlayState = isPaused ? 'paused' : 'running');
-        }
-
-        function showOverlay(title, showControls) {
-            overlay.style.display = 'flex';
-            document.getElementById('overlay-title').textContent = title;
-            document.getElementById('resume-btn').style.display = showControls ? 'flex' : 'none';
-            document.getElementById('settings-btn').style.display = showControls ? 'flex' : 'none';
-            document.getElementById('restart-btn').textContent = showControls ? "Reiniciar" : "Reintentar (Enter)";
-        }
-
-        function gameOver() {
-            isDead = true; analyzerActive = false; audio.pause();
-            showOverlay("Game Over", false);
-        }
-
-        function restartGame() {
-            overlay.style.display = 'none';
-            initGame(); audio.currentTime = 0; audio.play(); analyzerActive = true; analyzeLoop();
-        }
-
+        function loseLife() { if(isDead) return; lives--; updateLivesUI(); updateStatus('Miss', '#ff4757'); combo = 0; comboEl.textContent = "0"; if(lives <= 0) { isDead = true; analyzerActive = false; audio.pause(); showOverlay("Game Over", false); } }
+        function updateLivesUI() { const hearts = document.querySelectorAll('.life-heart'); hearts.forEach((h, i) => h.style.opacity = i < lives ? '1' : '0.1'); }
+        function togglePause() { if(isDead) return; isPaused = !isPaused; if(isPaused) audio.pause(); else audio.play(); if(isPaused) showOverlay("Pausa", true); else overlay.style.display = 'none'; activeNotes.forEach(n => n.el.style.animationPlayState = isPaused ? 'paused' : 'running'); }
+        function showOverlay(title, showControls) { overlay.style.display = 'flex'; document.getElementById('overlay-title').textContent = title; document.getElementById('resume-btn').style.display = showControls ? 'flex' : 'none'; document.getElementById('settings-btn').style.display = showControls ? 'flex' : 'none'; document.getElementById('restart-btn').textContent = showControls ? "Reiniciar" : "Reintentar (Enter)"; }
+        function restartGame() { overlay.style.display = 'none'; initGame(); audio.currentTime = 0; audio.play(); analyzerActive = true; analyzeLoop(); }
         function goHome() { location.reload(); }
-
-        function updateStatus(t, c) {
-            statusEl.textContent = t; statusEl.style.color = c; statusEl.style.opacity = '1';
-            setTimeout(() => { statusEl.style.opacity = '0'; }, 400);
-        }
+        function updateStatus(t, c) { statusEl.textContent = t; statusEl.style.color = c; statusEl.style.opacity = '1'; setTimeout(() => statusEl.style.opacity = '0', 400); }
     </script>
 </body>
 </html>
