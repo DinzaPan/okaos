@@ -158,6 +158,7 @@
         .song-info h3 { font-size: 1.2rem; margin-bottom: 5px; }
         .song-info p { color: #888; font-size: 0.85rem; }
         .diff-tag { font-size: 0.7rem; background: #ff4757; color: white; padding: 2px 8px; border-radius: 5px; margin-left: 10px; vertical-align: middle; }
+        .hard-tag { background: #6c5ce7; }
 
         #settings-panel {
             position: fixed;
@@ -485,6 +486,13 @@
                 </div>
                 <svg viewBox="0 0 24 24" width="30" height="30" fill="white"><path d="M8 5v14l11-7z"/></svg>
             </div>
+            <div class="song-card" onclick="selectSong(4)">
+                <div class="song-info">
+                    <h3>Adoウタカタララバイウタ ONE PIECE <span class="diff-tag hard-tag">Difícil</span></h3>
+                    <p>Duración: 3:13</p>
+                </div>
+                <svg viewBox="0 0 24 24" width="30" height="30" fill="white"><path d="M8 5v14l11-7z"/></svg>
+            </div>
         </div>
         <button class="btn-s btn-cancel" style="margin-top:30px; width:200px" onclick="hideSongSelection()">Volver</button>
     </div>
@@ -592,7 +600,8 @@
             { name: "Puertas", artist: "El Cuarteto de Nos", path: "music/puertas.mp3", duration: 228, diff: 180 },
             { name: "ART OF GUITAR", artist: "Marcin, RJ Pasin", path: "music/marcin.mp3", duration: 143, diff: 155 },
             { name: "Everything Black", artist: "Unlike Pluto", path: "music/unlike.mp3", duration: 229, diff: 180 },
-            { name: "Chop Suey!", artist: "System Of A Down", path: "music/system.mp3", duration: 208, diff: 170 }
+            { name: "Chop Suey!", artist: "System Of A Down", path: "music/system.mp3", duration: 208, diff: 170 },
+            { name: "Adoウタカタララバイウタ ONE PIECE", artist: "Ado", path: "music/onepiece.mp3", duration: 193, diff: 135 }
         ];
 
         let selectedSongIndex = 0;
@@ -691,7 +700,7 @@
             currentFallSpeed = Math.max(1.2, 3.0 - (energy / 60));
             const now = Date.now();
             const threshold = songs[selectedSongIndex].diff;
-            const minInterval = energy > 80 ? 200 : 400;
+            const minInterval = energy > 80 ? 180 : 350;
             if (bassIntensity > threshold && (now - lastBeatTime) > minInterval) { lastBeatTime = now; spawnNote(Math.floor(Math.random() * 4)); }
         }
 
