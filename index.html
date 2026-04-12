@@ -74,6 +74,16 @@
             border-right: 1px solid var(--border);
         }
 
+        @media (min-width: 1025px) {
+            #main-menu {
+                flex-direction: row-reverse;
+            }
+            .sidebar {
+                border-right: none;
+                border-left: 1px solid var(--border);
+            }
+        }
+
         .logo-main {
             font-size: 4.5rem;
             font-weight: 700;
@@ -153,6 +163,27 @@
             cursor: pointer;
             transition: all 0.3s;
             flex-shrink: 0;
+            position: relative;
+        }
+
+        .mission-icon {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background: #eab000;
+            color: black;
+            padding: 4px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 0 10px rgba(234, 176, 0, 0.4);
+        }
+
+        .mission-icon svg {
+            width: 16px;
+            height: 16px;
+            fill: black;
         }
 
         .song-card:hover {
@@ -477,7 +508,7 @@
             <h1 class="logo-main">OKAOs</h1>
             <div class="nav-menu">
                 <div class="nav-item active" onclick="showSongSelection()">
-                    <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg> Play
+                    <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
                 </div>
                 <a href="sc/misiones.html" class="nav-item">
                     <svg viewBox="0 0 24 24"><path d="M19 3h-4.18C14.4 1.84 13.3 1 12 1s-2.4.84-2.82 2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 0c.55 0 1 .45 1 1s-.45 1-1 1-1-.45-1-1 .45-1 1-1zm2 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/></svg> Misiones
@@ -616,7 +647,8 @@
             { id: 3, name: "Chop Suey!", artist: "System Of A Down", path: "music/system.mp3", duration: 208, diff: 170 },
             { id: 4, name: "Adoウタカタララバイウタ ONE PIECE", artist: "Ado", path: "music/onepiece.mp3", duration: 193, diff: 135 },
             { id: 5, name: "Big Metra Pañuelito Rojo", artist: "Big Metra", path: "music/bigmetra.mp3", duration: 216, diff: 110, boosted: true },
-            { id: 6, name: "BIG METRA - TRATO DE NO TRABARME", artist: "Big Metra", path: "music/bigmetra2.mp3", duration: 228, diff: 85, death: true }
+            { id: 6, name: "BIG METRA - TRATO DE NO TRABARME", artist: "Big Metra", path: "music/bigmetra2.mp3", duration: 228, diff: 85, death: true },
+            { id: 7, name: "PUPPET VS TAILS DOLL RAP", artist: "Kronno Zomber & Cyclo Ft. Punyaso", path: "music/puppet.mp3", duration: 285, diff: 145, mission: true }
         ];
 
         let selectedSongIndex = 0;
@@ -666,7 +698,16 @@
                 else if(s.boosted) diffHtml = '<span class="diff-tag boost-tag">Potenciado</span>';
                 else if(s.diff < 150) diffHtml = '<span class="diff-tag hard-tag">Difícil</span>';
 
+                let missionHtml = '';
+                if(s.mission) {
+                    missionHtml = `
+                    <div class="mission-icon">
+                        <svg viewBox="0 0 24 24"><path d="M19 3h-4.18C14.4 1.84 13.3 1 12 1s-2.4.84-2.82 2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 0c.55 0 1 .45 1 1s-.45 1-1 1-1-.45-1-1 .45-1 1-1zm2 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/></svg>
+                    </div>`;
+                }
+
                 card.innerHTML = `
+                    ${missionHtml}
                     <div class="song-info">
                         <h3>${s.name} ${diffHtml}</h3>
                         <p>Artista: ${s.artist}</p>
