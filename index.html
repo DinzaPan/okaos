@@ -1088,8 +1088,11 @@
             if (now - lastSpawnTime > dynamicCooldown) {
                 let lanesToSpawn = [];
                 let threshold = song.diff;
-                if (currentEnergy > threshold + 40 && Math.random() < 0.25) {
-                    patternMode = (Math.random() > 0.6) ? 'ladder' : 'burst';
+                if (currentEnergy > threshold + 30 && Math.random() < 0.3) {
+                    const patternRand = Math.random();
+                    if (patternRand > 0.7) patternMode = 'ladder';
+                    else if (patternRand > 0.4) patternMode = 'burst';
+                    else patternMode = 'quad';
                 } else {
                     patternMode = 'random';
                 }
@@ -1098,22 +1101,27 @@
                     currentLadderLane += ladderDirection;
                     if (currentLadderLane >= 3 || currentLadderLane <= 0) ladderDirection *= -1;
                 } else if (patternMode === 'burst') {
-                    lanesToSpawn.push(Math.floor(Math.random() * 4));
+                    let mainLane = Math.floor(Math.random() * 4);
+                    lanesToSpawn.push(mainLane);
+                    if (Math.random() > 0.5) lanesToSpawn.push((mainLane + 2) % 4);
+                } else if (patternMode === 'quad') {
+                    let startLane = Math.floor(Math.random() * 4);
+                    lanesToSpawn = [startLane, (startLane + 1) % 4, (startLane + 2) % 4, (startLane + 3) % 4];
                 } else {
-                    if (bass > threshold + 10) lanesToSpawn.push(0);
-                    if (lowMid > threshold + 25) lanesToSpawn.push(1);
-                    if (mid > threshold + 35) lanesToSpawn.push(2);
-                    if (treble > threshold + 45) lanesToSpawn.push(3);
+                    if (bass > threshold - 5) lanesToSpawn.push(Math.random() > 0.5 ? 0 : 3);
+                    if (lowMid > threshold + 10) lanesToSpawn.push(1);
+                    if (mid > threshold + 20) lanesToSpawn.push(2);
+                    if (treble > threshold + 30) lanesToSpawn.push(3);
                 }
                 let laneCount = {};
                 activeNotes.forEach(n => {
-                    if (parseFloat(n.el.style.top) < 250) {
+                    if (parseFloat(n.el.style.top) < 200) {
                         laneCount[n.lane] = (laneCount[n.lane] || 0) + 1;
                     }
                 });
                 let balancedLanes = lanesToSpawn.filter(l => (laneCount[l] || 0) === 0);
                 let finalLanes = [...new Set(balancedLanes)];
-                if (finalLanes.length > 2) finalLanes = [finalLanes[0]];
+                if (patternMode !== 'quad' && finalLanes.length > 2) finalLanes = finalLanes.slice(0, 2);
                 if (finalLanes.length > 0) {
                     finalLanes.forEach(l => spawnNote(l));
                     lastSpawnTime = now;
