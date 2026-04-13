@@ -413,6 +413,29 @@
         .lives-container { display: flex; gap: 8px; }
         .life-heart { width: 30px; height: 30px; fill: #ff4757; transition: opacity 0.5s, transform 0.5s; }
 
+        .health-bar-container {
+            position: absolute;
+            right: 20px;
+            top: 80px;
+            width: 12px;
+            height: 200px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 10px;
+            overflow: hidden;
+            display: none;
+            border: 1px solid var(--border);
+        }
+
+        #health-fill {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            height: 50%;
+            background: linear-gradient(0deg, #ff4757 0%, #2ed573 100%);
+            transition: height 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 0 15px rgba(46, 213, 115, 0.5);
+        }
+
         .pause-trigger {
             width: 45px;
             height: 45px;
@@ -708,6 +731,26 @@
         .action-btn.secondary { border-color: rgba(255,255,255,0.2); opacity: 0.7; }
         .action-btn.secondary:hover { opacity: 1; border-color: #fff; }
 
+        #mode-selector {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.9);
+            z-index: 4000;
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: flex-start;
+            backdrop-filter: blur(30px);
+        }
+
+        .mode-title {
+            padding-left: 60px;
+            font-size: 3rem;
+            font-weight: 700;
+            margin-bottom: 30px;
+            text-transform: uppercase;
+        }
+
     </style>
 </head>
 <body>
@@ -791,6 +834,14 @@
 
     <input type="file" id="avatar-upload" accept="image/*" style="display: none;" onchange="handleAvatarChange(event)">
 
+    <div id="mode-selector">
+        <h2 class="mode-title">Selecciona Modo</h2>
+        <button class="action-btn" onclick="selectMode('normal')">MODO NORMAL</button>
+        <button class="action-btn" onclick="selectMode('recovery')">MODO RECUPERACIÓN</button>
+        <button class="action-btn" onclick="selectMode('auto')">MODO AUTOMÁTICO</button>
+        <button class="action-btn secondary" onclick="closeModeSelector()">CANCELAR</button>
+    </div>
+
     <div id="intro-layer">
         <div class="intro-hearts">
             <svg id="ih1" class="intro-heart" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
@@ -808,6 +859,9 @@
                 <svg id="life-0" class="life-heart" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
                 <svg id="life-1" class="life-heart" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
                 <svg id="life-2" class="life-heart" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+            </div>
+            <div class="health-bar-container" id="health-ui">
+                <div id="health-fill"></div>
             </div>
             <div class="pause-trigger" onclick="togglePause()"><svg viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg></div>
         </div>
@@ -927,6 +981,8 @@
         let lastSpawnTime = 0;
         let ladderDirection = 1, currentLadderLane = 0;
         let patternMode = 'random';
+        let currentGameMode = 'normal';
+        let health = 50;
         const audio = document.getElementById('game-audio');
         const sfxMission = document.getElementById('sfx-mission');
         
@@ -942,7 +998,7 @@
                 const bar = document.createElement('div');
                 bar.className = `song-bar enter`;
                 bar.style.animationDelay = `${i * 0.05}s`;
-                bar.onclick = () => startSequence(i);
+                bar.onclick = () => openModeSelector(i);
                 
                 bar.onmouseenter = () => {
                     bgOverlay.style.backgroundImage = `url('${s.bg}')`;
@@ -976,6 +1032,21 @@
                 `;
                 container.appendChild(bar);
             });
+        }
+
+        function openModeSelector(index) {
+            selectedSongIndex = index;
+            document.getElementById('mode-selector').style.display = 'flex';
+        }
+
+        function closeModeSelector() {
+            document.getElementById('mode-selector').style.display = 'none';
+        }
+
+        function selectMode(mode) {
+            currentGameMode = mode;
+            closeModeSelector();
+            startSequence(selectedSongIndex);
         }
 
         function initMissionsList() {
@@ -1138,7 +1209,7 @@
         }
 
         function checkMissions(win) {
-            if (!isPlaying) return;
+            if (!isPlaying || currentGameMode === 'auto' || currentGameMode === 'recovery') return;
             let newlyCompleted = false;
             const currentSong = songs[selectedSongIndex];
             
@@ -1290,12 +1361,23 @@
 
         function initGame() {
             isDead = false; isPaused = false; analyzerActive = true;
-            lives = songs[selectedSongIndex].death ? 1 : 3;
             combo = 0; score = 0; perfects = 0; misses = 0; maxCombo = 0;
             audio.currentTime = 0;
             audio.playbackRate = 1.0;
             audio.play();
-            updateLivesUI();
+
+            if (currentGameMode === 'recovery') {
+                health = 50;
+                document.getElementById('lives-ui').style.display = 'none';
+                document.getElementById('health-ui').style.display = 'block';
+                updateHealthUI();
+            } else {
+                lives = songs[selectedSongIndex].death ? 1 : 3;
+                document.getElementById('lives-ui').style.display = 'flex';
+                document.getElementById('health-ui').style.display = 'none';
+                updateLivesUI();
+            }
+
             requestAnimationFrame(gameLoop);
         }
 
@@ -1313,6 +1395,7 @@
             const now = Date.now() + audioOffset;
             const song = songs[selectedSongIndex];
             let dynamicCooldown = (spawnCooldown + (song.diff * 0.5)) / (0.6 + (currentEnergy / 100));
+            
             if (now - lastSpawnTime > dynamicCooldown) {
                 let lanesToSpawn = [];
                 let threshold = song.diff;
@@ -1355,14 +1438,31 @@
                     lastSpawnTime = now;
                 }
             }
+
+            const hitZone = window.innerHeight - 165;
             activeNotes.forEach(n => {
                 let currentY = parseFloat(n.el.style.top || -100);
                 let speedFactor = song.speed * 8.5 * dynamicSpeed;
                 n.el.style.top = (currentY + speedFactor) + 'px';
+
+                if (currentGameMode === 'auto' && currentY > hitZone - 20 && !n.hit) {
+                    handleInput(n.lane);
+                }
+
                 if (currentY > window.innerHeight) {
                     n.el.remove();
                     activeNotes = activeNotes.filter(x => x.id !== n.id);
-                    if (!n.hit) loseLife();
+                    if (!n.hit) {
+                        if (currentGameMode === 'recovery') {
+                            modifyHealth(-5);
+                            updateStatus('MISS', '#ff4757');
+                            misses++;
+                            combo = 0;
+                            document.getElementById('combo-text').textContent = "0";
+                        } else {
+                            loseLife();
+                        }
+                    }
                 }
             });
             requestAnimationFrame(gameLoop);
@@ -1389,18 +1489,66 @@
             slot.classList.add('pressed');
             if (flashIntensity > 0) slot.style.boxShadow = `0 0 ${flashIntensity}px var(--k${lane+1})`;
             setTimeout(() => { slot.classList.remove('pressed'); slot.style.boxShadow = 'none'; }, 100);
+            
             const hitZone = window.innerHeight - 165;
             let note = activeNotes.find(n => n.lane == lane && !n.hit && parseFloat(n.el.style.top) > hitZone - 120);
+            
             if (note) {
                 const noteY = parseFloat(note.el.style.top);
                 const dist = Math.abs(noteY - hitZone);
                 note.hit = true;
                 note.el.remove();
-                if (dist < 50) { score += (100 * (1 + combo * 0.02)); combo++; perfects++; updateStatus('PERFECT', '#00ffcc'); } 
-                else { score += (50 * (1 + combo * 0.01)); combo++; updateStatus('GREAT', '#eab000'); }
+                
+                if (currentGameMode === 'recovery') {
+                    if (dist < 50) { 
+                        modifyHealth(3); 
+                        updateStatus('PERFECT', '#00ffcc');
+                        perfects++;
+                    } else { 
+                        modifyHealth(1); 
+                        updateStatus('GREAT', '#eab000');
+                    }
+                    combo++;
+                } else if (currentGameMode === 'auto') {
+                    updateStatus('AUTO', '#fff');
+                    combo++;
+                } else {
+                    if (dist < 50) { 
+                        score += (100 * (1 + combo * 0.02)); 
+                        combo++; 
+                        perfects++; 
+                        updateStatus('PERFECT', '#00ffcc'); 
+                    } else { 
+                        score += (50 * (1 + combo * 0.01)); 
+                        combo++; 
+                        updateStatus('GREAT', '#eab000'); 
+                    }
+                }
+                
                 if (combo > maxCombo) maxCombo = combo;
                 document.getElementById('combo-text').textContent = combo;
-            } else { loseLife(); }
+            } else { 
+                if (currentGameMode === 'recovery') {
+                    modifyHealth(-5);
+                    updateStatus('MISS', '#ff4757');
+                    misses++;
+                    combo = 0;
+                    document.getElementById('combo-text').textContent = "0";
+                } else if (currentGameMode !== 'auto') {
+                    loseLife();
+                }
+            }
+        }
+
+        function modifyHealth(val) {
+            health += val;
+            if (health > 100) health = 100;
+            if (health <= 0) { health = 0; endGame(false); }
+            updateHealthUI();
+        }
+
+        function updateHealthUI() {
+            document.getElementById('health-fill').style.height = health + '%';
         }
 
         function loseLife() {
@@ -1452,14 +1600,26 @@
             document.getElementById('btn-resume').style.display = 'none';
             document.getElementById('results-display').style.display = 'flex';
             document.getElementById('overlay-title').textContent = win ? "TERMINADO" : "FALLIDO";
+            
             const stars = document.querySelectorAll('.star');
             stars.forEach(s => s.classList.remove('active'));
-            if(win) {
-                stars[0].classList.add('active');
-                if(lives >= 2) stars[1].classList.add('active');
-                if(misses === 0) stars[2].classList.add('active');
+            
+            if (currentGameMode === 'auto' || currentGameMode === 'recovery') {
+                document.getElementById('res-score').textContent = "N/A";
+                if (win) {
+                    stars[0].classList.add('active');
+                    stars[1].classList.add('active');
+                    stars[2].classList.add('active');
+                }
+            } else {
+                if(win) {
+                    stars[0].classList.add('active');
+                    if(lives >= 2) stars[1].classList.add('active');
+                    if(misses === 0) stars[2].classList.add('active');
+                }
+                document.getElementById('res-score').textContent = Math.floor(score);
             }
-            document.getElementById('res-score').textContent = Math.floor(score);
+            
             document.getElementById('res-combo').textContent = maxCombo;
             document.getElementById('res-perfect').textContent = perfects;
             document.getElementById('res-miss').textContent = misses;
