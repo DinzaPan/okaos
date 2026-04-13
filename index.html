@@ -529,7 +529,7 @@
             width: 450px;
             height: 100%;
             justify-content: center;
-            background: linear-gradient(90deg, rgba(0,0,0,0.7) 0%, transparent 100%);
+            background: linear-gradient(90deg, rgba(0,0,0,0.9) 0%, transparent 100%);
             border-right: 1px solid var(--border);
         }
 
@@ -541,7 +541,7 @@
             text-transform: uppercase;
             letter-spacing: -3px;
             color: #fff;
-            text-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            text-shadow: 0 5px 20px rgba(255,255,255,0.3);
         }
 
         .overlay-right {
@@ -560,23 +560,38 @@
             position: absolute;
             font-size: 15rem;
             font-weight: 700;
-            opacity: 0.1;
+            opacity: 0.85;
             pointer-events: none;
             right: 50px;
-            bottom: 50px;
+            bottom: -20px;
             color: white;
             line-height: 1;
+            text-shadow: 0 0 30px rgba(255,255,255,0.2);
+            z-index: 1;
+        }
+
+        .okao-shadow-patch {
+            position: absolute;
+            right: 0;
+            bottom: 0;
+            width: 60%;
+            height: 300px;
+            background: radial-gradient(circle at bottom right, rgba(0,0,0,1) 0%, rgba(0,0,0,0.8) 40%, transparent 100%);
+            z-index: 0;
+            pointer-events: none;
         }
 
         .results-panel {
-            background: rgba(255, 255, 255, 0.03);
-            border: 1px solid var(--border);
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--accent);
             border-radius: 50px;
             padding: 50px;
             width: 100%;
             max-width: 650px;
-            box-shadow: 0 40px 100px rgba(0,0,0,0.5);
+            box-shadow: 0 40px 100px rgba(0,0,0,0.8), 0 0 40px rgba(255,255,255,0.1);
             backdrop-filter: blur(20px);
+            position: relative;
+            z-index: 5;
         }
 
         .results-grid { 
@@ -587,7 +602,7 @@
         }
 
         .res-item { 
-            background: rgba(255,255,255,0.02); 
+            background: rgba(255,255,255,0.05); 
             padding: 25px; 
             border-radius: 30px; 
             border: 1px solid var(--border); 
@@ -596,16 +611,17 @@
         }
 
         .res-item:hover {
-            background: rgba(255,255,255,0.05);
-            border-color: rgba(255,255,255,0.3);
+            background: rgba(255,255,255,0.1);
+            border-color: rgba(255,255,255,0.5);
+            transform: translateY(-5px);
         }
 
-        .res-item span { display: block; font-size: 0.9rem; color: #888; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 2px; }
+        .res-item span { display: block; font-size: 0.9rem; color: #aaa; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 2px; }
         .res-item b { font-size: 2.2rem; color: #fff; font-weight: 700; }
         
         .star-display { font-size: 5rem; margin-bottom: 20px; display: flex; justify-content: center; gap: 20px; }
-        .star { color: rgba(255, 255, 255, 0.05); transition: 1s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
-        .star.active { color: #ffd700; text-shadow: 0 0 50px rgba(255, 215, 0, 0.5); transform: scale(1.1); }
+        .star { color: rgba(255, 255, 255, 0.1); transition: 1s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        .star.active { color: #ffd700; text-shadow: 0 0 50px rgba(255, 215, 0, 0.8); transform: scale(1.1); }
 
         #notification {
             position: fixed;
@@ -659,34 +675,38 @@
         }
 
         .action-btn {
-            background: linear-gradient(90deg, var(--glass) 0%, rgba(255,255,255,0) 100%);
-            border: 1px solid var(--border);
+            background: linear-gradient(90deg, rgba(255,255,255,0.1) 0%, transparent 100%);
+            border: 2px solid rgba(255,255,255,0.3);
             border-left: none;
             padding: 25px 60px 25px 60px;
-            width: 400px;
+            width: 420px;
             border-radius: 0 60px 60px 0;
             font-size: 1.5rem;
-            font-weight: 600;
+            font-weight: 700;
             cursor: pointer;
             color: #fff;
             text-align: left;
-            transition: 0.6s cubic-bezier(0.2, 1, 0.3, 1);
+            transition: 0.4s cubic-bezier(0.2, 1, 0.3, 1);
             transform: translateX(-100%);
             animation: bounceInLeft 0.5s cubic-bezier(0.2, 1, 0.3, 1) forwards;
-            margin-bottom: 5px;
+            margin-bottom: 10px;
             position: relative;
             z-index: 10;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            text-shadow: 0 2px 10px rgba(0,0,0,0.5);
         }
 
         .action-btn:hover {
             background: var(--accent);
             color: #000;
-            width: 440px;
+            width: 460px;
             padding-left: 80px;
+            border-color: #fff;
+            box-shadow: 0 0 30px rgba(255,255,255,0.4);
         }
 
-        .action-btn.secondary { border-color: rgba(255,255,255,0.1); opacity: 0.6; }
-        .action-btn.secondary:hover { opacity: 1; }
+        .action-btn.secondary { border-color: rgba(255,255,255,0.2); opacity: 0.7; }
+        .action-btn.secondary:hover { opacity: 1; border-color: #fff; }
 
     </style>
 </head>
@@ -814,6 +834,7 @@
         </div>
 
         <div class="overlay-right">
+            <div class="okao-shadow-patch"></div>
             <div class="okao-watermark">OKAOs</div>
             <div id="results-display" style="display: none; width: 100%; display: flex; justify-content: center;">
                 <div class="results-panel">
