@@ -518,6 +518,8 @@
             justify-content: space-between;
             padding: 0;
             transition: opacity 0.5s ease;
+            background-size: cover;
+            background-position: center;
         }
 
         .overlay-left {
@@ -527,7 +529,7 @@
             width: 450px;
             height: 100%;
             justify-content: center;
-            background: linear-gradient(90deg, rgba(255,255,255,0.02) 0%, transparent 100%);
+            background: linear-gradient(90deg, rgba(0,0,0,0.7) 0%, transparent 100%);
             border-right: 1px solid var(--border);
         }
 
@@ -551,6 +553,19 @@
             justify-content: center;
             padding: 50px;
             animation: bounceInRight 0.8s cubic-bezier(0.2, 1, 0.3, 1) forwards;
+            position: relative;
+        }
+
+        .okao-watermark {
+            position: absolute;
+            font-size: 15rem;
+            font-weight: 700;
+            opacity: 0.1;
+            pointer-events: none;
+            right: 50px;
+            bottom: 50px;
+            color: white;
+            line-height: 1;
         }
 
         .results-panel {
@@ -561,6 +576,7 @@
             width: 100%;
             max-width: 650px;
             box-shadow: 0 40px 100px rgba(0,0,0,0.5);
+            backdrop-filter: blur(20px);
         }
 
         .results-grid { 
@@ -658,6 +674,8 @@
             transform: translateX(-100%);
             animation: bounceInLeft 0.5s cubic-bezier(0.2, 1, 0.3, 1) forwards;
             margin-bottom: 5px;
+            position: relative;
+            z-index: 10;
         }
 
         .action-btn:hover {
@@ -795,18 +813,21 @@
             <button class="action-btn secondary" style="animation-delay: 0.3s;" onclick="location.reload()">SALIR AL MENÚ</button>
         </div>
 
-        <div class="overlay-right" id="results-display" style="display: none;">
-            <div class="results-panel">
-                <div class="star-display" id="res-stars">
-                    <span class="star">★</span>
-                    <span class="star">★</span>
-                    <span class="star">★</span>
-                </div>
-                <div class="results-grid">
-                    <div class="res-item"><span>Puntos</span><b id="res-score">0</b></div>
-                    <div class="res-item"><span>Combo Máx.</span><b id="res-combo">0</b></div>
-                    <div class="res-item"><span>Perfects</span><b id="res-perfect">0</b></div>
-                    <div class="res-item"><span>Miss</span><b id="res-miss">0</b></div>
+        <div class="overlay-right">
+            <div class="okao-watermark">OKAOs</div>
+            <div id="results-display" style="display: none; width: 100%; display: flex; justify-content: center;">
+                <div class="results-panel">
+                    <div class="star-display" id="res-stars">
+                        <span class="star">★</span>
+                        <span class="star">★</span>
+                        <span class="star">★</span>
+                    </div>
+                    <div class="results-grid">
+                        <div class="res-item"><span>Puntos</span><b id="res-score">0</b></div>
+                        <div class="res-item"><span>Combo Máx.</span><b id="res-combo">0</b></div>
+                        <div class="res-item"><span>Perfects</span><b id="res-perfect">0</b></div>
+                        <div class="res-item"><span>Miss</span><b id="res-miss">0</b></div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -876,7 +897,7 @@
         let gameKeys = ['a', 's', 'k', 'l'];
         let captureIndex = -1, selectedSongIndex = 0;
         let combo = 0, maxCombo = 0, score = 0, perfects = 0, misses = 0, lives = 3;
-        let isPaused = false, isDead = false, analyzerActive = false;
+        let isPaused = false, isDead = false, analyzerActive = false, isPlaying = false;
         let activeNotes = [];
         let audioCtx, analyzer, dataArray;
         let spawnCooldown = 220;
@@ -906,15 +927,18 @@
                     bgOverlay.style.backgroundImage = `url('${s.bg}')`;
                     bgOverlay.classList.add('active');
                     if (audio.src !== window.location.origin + '/' + s.path) {
+                        isPlaying = false;
                         audio.src = s.path;
                         audio.play().catch(() => {});
                     }
                 };
                 
                 bar.onmouseleave = () => {
-                    bgOverlay.classList.remove('active');
-                    audio.pause();
-                    audio.currentTime = 0;
+                    if (!isPlaying) {
+                        bgOverlay.classList.remove('active');
+                        audio.pause();
+                        audio.currentTime = 0;
+                    }
                 };
 
                 bar.innerHTML = `
@@ -1022,6 +1046,7 @@
             initProfileView();
             audio.pause();
             audio.currentTime = 0;
+            isPlaying = false;
             document.getElementById('bg-overlay').classList.remove('active');
         }
 
@@ -1092,6 +1117,7 @@
         }
 
         function checkMissions(win) {
+            if (!isPlaying) return;
             let newlyCompleted = false;
             const currentSong = songs[selectedSongIndex];
             
@@ -1210,6 +1236,7 @@
 
         async function startSequence(index) {
             selectedSongIndex = index;
+            isPlaying = true;
             if (!audioCtx) {
                 audioCtx = new (window.AudioContext || window.webkitAudioContext)();
                 analyzer = audioCtx.createAnalyser();
@@ -1379,6 +1406,7 @@
             if (isPaused) audio.pause(); else { audio.play(); requestAnimationFrame(gameLoop); }
             const overlay = document.getElementById('overlay-game');
             overlay.style.display = isPaused ? 'flex' : 'none';
+            overlay.style.backgroundImage = isPaused ? "url('img/ft/f1.jpg')" : "none";
             document.getElementById('overlay-title').textContent = "PAUSADO";
             document.getElementById('results-display').style.display = 'none';
             document.getElementById('btn-resume').style.display = 'block';
@@ -1399,6 +1427,7 @@
             isDead = true; analyzerActive = false; audio.pause();
             const overlay = document.getElementById('overlay-game');
             overlay.style.display = 'flex';
+            overlay.style.backgroundImage = "url('img/ft/f2.jpg')";
             document.getElementById('btn-resume').style.display = 'none';
             document.getElementById('results-display').style.display = 'flex';
             document.getElementById('overlay-title').textContent = win ? "TERMINADO" : "FALLIDO";
@@ -1414,6 +1443,7 @@
             document.getElementById('res-perfect').textContent = perfects;
             document.getElementById('res-miss').textContent = misses;
             checkMissions(win);
+            isPlaying = false;
         }
 
         window.addEventListener('keydown', (e) => {
