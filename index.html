@@ -88,6 +88,16 @@
             z-index: 100;
         }
 
+        .mobile-brand {
+            display: none;
+            padding-left: 40px;
+            font-size: 3rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+            color: var(--accent);
+            text-shadow: 0 0 20px rgba(255,255,255,0.3);
+        }
+
         .menu-bar {
             background: linear-gradient(90deg, var(--glass) 0%, rgba(255,255,255,0) 100%);
             border: 1px solid var(--border);
@@ -109,6 +119,27 @@
             width: 340px;
         }
 
+        .menu-bar.exit {
+            animation: bounceOutLeft 0.6s cubic-bezier(0.4, 0, 1, 1) forwards !important;
+        }
+
+        .btn-back {
+            display: none;
+            position: fixed;
+            left: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            background: var(--glass);
+            border: 1px solid var(--border);
+            border-left: none;
+            padding: 15px 25px;
+            border-radius: 0 30px 30px 0;
+            font-weight: 700;
+            z-index: 200;
+            cursor: pointer;
+            backdrop-filter: blur(10px);
+        }
+
         #right-song-container, #right-settings-container, #right-missions-container, #right-profile-container {
             position: fixed;
             right: 0;
@@ -123,6 +154,7 @@
             touch-action: pan-y;
             align-items: flex-end;
             transition: 0.8s cubic-bezier(0.2, 1, 0.3, 1);
+            display: none;
         }
 
         #right-song-container::-webkit-scrollbar, #right-settings-container::-webkit-scrollbar, #right-missions-container::-webkit-scrollbar, #right-profile-container::-webkit-scrollbar { display: none; }
@@ -355,6 +387,7 @@
         @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
         @keyframes bounceInLeft { from { transform: translateX(-100%); } to { transform: translateX(0); } }
         @keyframes bounceInRight { from { transform: translateX(100%); } to { transform: translateX(0); } }
+        @keyframes bounceOutLeft { from { transform: translateX(0); } to { transform: translateX(-110%); } }
         @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
 
         #game-canvas {
@@ -459,6 +492,14 @@
             border-right: 2px solid var(--border);
             display: flex;
             justify-content: center;
+        }
+
+        .lane-trigger {
+            position: absolute;
+            top: 0;
+            height: 100%;
+            width: 25%;
+            z-index: 400;
         }
 
         .hit-bar {
@@ -751,6 +792,26 @@
             text-transform: uppercase;
         }
 
+        @media screen and (max-width: 768px) {
+            .mobile-brand { display: block; }
+            .menu-bar { width: 250px; font-size: 1.1rem; padding: 18px 40px; }
+            .menu-bar:hover, .menu-bar.active { width: 280px; }
+            .song-bar, .setting-item, .mission-item, .profile-card { width: 320px; padding: 20px 20px 20px 40px; }
+            .song-bar:hover, .setting-item:hover, .mission-item:hover { width: 340px; }
+            .song-info h3 { font-size: 1.2rem; }
+            .song-info p { font-size: 0.9rem; }
+            .disc-wrap { width: 50px; height: 50px; }
+            .game-track { width: 100%; border: none; }
+            .note, .slot { width: 70px; height: 70px; border-radius: 15px; }
+            .slot svg, .note svg { width: 35px; height: 35px; }
+            .hit-bar { bottom: 40px; }
+            #combo-text { font-size: 4rem; }
+            .overlay-left { width: 100%; border-right: none; background: rgba(0,0,0,0.8); }
+            .overlay-right { display: none; }
+            .overlay-title-main { font-size: 3rem; padding-left: 30px; }
+            .action-btn { width: 300px; padding: 20px 40px; }
+        }
+
     </style>
 </head>
 <body>
@@ -762,15 +823,19 @@
     
     <div id="main-ui">
         <div id="left-bar-container">
-            <div id="btn-inicio" class="menu-bar active" style="animation-delay: 0.1s;" onclick="showMainView()">Inicio</div>
-            <div id="btn-perfil" class="menu-bar" style="animation-delay: 0.2s;" onclick="showProfileView()">Perfil</div>
-            <div id="btn-misiones" class="menu-bar" style="animation-delay: 0.3s;" onclick="showMissionsView()">Misiones</div>
-            <div id="btn-ajustes" class="menu-bar" style="animation-delay: 0.4s;" onclick="showSettingsView()">Ajustes</div>
+            <div class="mobile-brand">OKAOs</div>
+            <div id="btn-inicio" class="menu-bar active" style="animation-delay: 0.1s;" onclick="navigate('songs')">Inicio</div>
+            <div id="btn-perfil" class="menu-bar" style="animation-delay: 0.2s;" onclick="navigate('profile')">Perfil</div>
+            <div id="btn-misiones" class="menu-bar" style="animation-delay: 0.3s;" onclick="navigate('missions')">Misiones</div>
+            <div id="btn-ajustes" class="menu-bar" style="animation-delay: 0.4s;" onclick="navigate('settings')">Ajustes</div>
         </div>
+        
+        <div id="btn-global-back" class="btn-back" onclick="backToMenu()">Volver</div>
+
         <div id="right-song-container"></div>
-        <div id="right-missions-container" style="display: none;"></div>
-        <div id="right-profile-container" style="display: none;"></div>
-        <div id="right-settings-container" style="display: none;">
+        <div id="right-missions-container"></div>
+        <div id="right-profile-container"></div>
+        <div id="right-settings-container">
             <div class="setting-item enter">
                 <div class="setting-info">
                     <h3>Controles</h3>
@@ -870,6 +935,11 @@
             <div id="status-text">Perfect</div>
         </div>
         <div class="game-track" id="track">
+            <div class="lane-trigger" style="left: 0;" onpointerdown="handleInput(0)"></div>
+            <div class="lane-trigger" style="left: 25%;" onpointerdown="handleInput(1)"></div>
+            <div class="lane-trigger" style="left: 50%;" onpointerdown="handleInput(2)"></div>
+            <div class="lane-trigger" style="left: 75%;" onpointerdown="handleInput(3)"></div>
+            
             <div class="hit-bar">
                 <div class="slot" id="s0" data-l="0"><svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z" /></svg></div>
                 <div class="slot" id="s1" data-l="1"><svg viewBox="0 0 24 24"><path d="M20 12l-1.41-1.41L13 16.17V4h-2v12.17l-5.58-5.59L4 12l8 8 8-8z" /></svg></div>
@@ -949,24 +1019,7 @@
             { id: 12, title: "Rey del Ritmo", desc: "Consigue un combo de 200.", goal: { type: 'combo', value: 200 } },
             { id: 13, title: "Intocable", desc: "Gana con 3 vidas restantes.", goal: { type: 'lives', value: 3 } },
             { id: 14, title: "Leyenda OKAOs", desc: "Consigue 3 estrellas en cualquier nivel.", goal: { type: 'stars', value: 3 } },
-            { id: 15, title: "Millonario del Ritmo", desc: "Acumula un total histórico de 1,000,000 de puntos.", goal: { type: 'total_score', value: 1000000 } },
-            { id: 16, title: "Combo Divino", desc: "Alcanza un combo de 500.", goal: { type: 'combo', value: 500 } },
-            { id: 17, title: "Puntaje Épico", desc: "Consigue 50,000 puntos en un solo tema.", goal: { type: 'score', value: 50000 } },
-            { id: 18, title: "Maestro Perfecto", desc: "Consigue 300 Perfects en una sola partida.", goal: { type: 'perfects', value: 300 } },
-            { id: 19, title: "Resistencia Extrema", desc: "Completa un nivel Legend con 1 de vida.", goal: { type: 'death_win', value: 1 } },
-            { id: 20, title: "Mago de los Dedos", desc: "Completa 10 canciones en total.", goal: { type: 'songs_completed', value: 10 } },
-            { id: 21, title: "Puntaje Galáctico", desc: "Consigue 100,000 puntos en una canción.", goal: { type: 'score', value: 100000 } },
-            { id: 22, title: "Combo Infinito", desc: "Alcanza un combo de 1,000.", goal: { type: 'combo', value: 1000 } },
-            { id: 23, title: "Precisión de Cirujano", desc: "Termina una canción con más del 98% de Perfects.", goal: { type: 'ratio_perfect', value: 0.98 } },
-            { id: 24, title: "Veterano del Beat", desc: "Juega durante un total de 1 hora.", goal: { type: 'time_played', value: 3600 } },
-            { id: 25, title: "Imparable", desc: "Consigue 5 victorias consecutivas sin morir.", goal: { type: 'streak', value: 5 } },
-            { id: 26, title: "Coleccionista de Estrellas", desc: "Consigue 3 estrellas en 5 canciones diferentes.", goal: { type: 'total_stars', value: 15 } },
-            { id: 27, title: "Velocidad de la Luz", desc: "Completa una canción con velocidad mayor a 2.0.", goal: { type: 'speed_win', value: 2.0 } },
-            { id: 28, title: "Berserker", desc: "Obtén 20,000 puntos en menos de 1 minuto.", goal: { type: 'fast_score', value: 20000 } },
-            { id: 29, title: "Dios del Rhythm Engine", desc: "Completa todas las canciones disponibles.", goal: { type: 'all_songs', value: 1 } },
-            { id: 30, title: "Paciente Cero", desc: "Completa IGAKU/Medicine por primera vez.", goal: { type: 'song_id_win', value: 11 } },
-            { id: 31, title: "Dosis Perfecta", desc: "Consigue 150 Perfects en IGAKU/Medicine.", goal: { type: 'song_id_perfects', value: { id: 11, count: 150 } } },
-            { id: 32, title: "Tratamiento de Oro", desc: "Logra 25,000 puntos en IGAKU/Medicine.", goal: { type: 'song_id_score', value: { id: 11, score: 25000 } } }
+            { id: 15, title: "Millonario del Ritmo", desc: "Acumula un total histórico de 1,000,000 de puntos.", goal: { type: 'total_score', value: 1000000 } }
         ];
 
         let gameKeys = ['a', 's', 'k', 'l'];
@@ -990,6 +1043,62 @@
         let totalStats = JSON.parse(localStorage.getItem('okao_stats') || '{"score":0, "songs":0, "stars":0, "bestScore":0}');
         let userData = JSON.parse(localStorage.getItem('okao_user') || '{"name":"Usuario", "avatar":""}');
 
+        function isMobile() { return window.innerWidth <= 768; }
+
+        if(isMobile()) {
+            document.getElementById('btn-inicio').textContent = "Play";
+        }
+
+        async function navigate(view) {
+            const menuBtns = document.querySelectorAll('.menu-bar');
+            for(let i = 0; i < menuBtns.length; i++) {
+                menuBtns[i].classList.add('exit');
+                await new Promise(r => setTimeout(r, 50));
+            }
+            
+            document.getElementById('btn-global-back').style.display = 'block';
+
+            if(view === 'songs') {
+                document.getElementById('right-song-container').style.display = 'flex';
+                initSongList();
+            } else if(view === 'profile') {
+                document.getElementById('right-profile-container').style.display = 'flex';
+                initProfileView();
+            } else if(view === 'missions') {
+                document.getElementById('right-missions-container').style.display = 'flex';
+                initMissionsList();
+            } else if(view === 'settings') {
+                document.getElementById('right-settings-container').style.display = 'flex';
+            }
+        }
+
+        async function backToMenu() {
+            const containers = ['right-song-container', 'right-missions-container', 'right-profile-container', 'right-settings-container'];
+            for(let id of containers) {
+                const cont = document.getElementById(id);
+                if(cont.style.display === 'flex') {
+                    const children = Array.from(cont.children);
+                    for(let i = children.length - 1; i >= 0; i--) {
+                        children[i].classList.add('exit');
+                        await new Promise(r => setTimeout(r, 30));
+                    }
+                    cont.style.display = 'none';
+                }
+            }
+
+            document.getElementById('btn-global-back').style.display = 'none';
+            document.getElementById('bg-overlay').classList.remove('active');
+            audio.pause();
+            audio.currentTime = 0;
+
+            const menuBtns = document.querySelectorAll('.menu-bar');
+            menuBtns.forEach(b => {
+                b.classList.remove('exit');
+                b.style.animation = 'none';
+                setTimeout(() => b.style.animation = '', 10);
+            });
+        }
+
         function initSongList() {
             const container = document.getElementById('right-song-container');
             const bgOverlay = document.getElementById('bg-overlay');
@@ -1001,34 +1110,19 @@
                 bar.onclick = () => openModeSelector(i);
                 
                 bar.onmouseenter = () => {
-                    bgOverlay.style.backgroundImage = `url('${s.bg}')`;
-                    bgOverlay.classList.add('active');
-                    if (audio.src !== window.location.origin + '/' + s.path) {
-                        isPlaying = false;
+                    if(!isMobile()) {
+                        bgOverlay.style.backgroundImage = `url('${s.bg}')`;
+                        bgOverlay.classList.add('active');
                         audio.src = s.path;
                         audio.play().catch(() => {});
                     }
                 };
                 
-                bar.onmouseleave = () => {
-                    if (!isPlaying) {
-                        bgOverlay.classList.remove('active');
-                        audio.pause();
-                        audio.currentTime = 0;
-                    }
-                };
+                bar.onmouseleave = () => { if(!isPlaying) { bgOverlay.classList.remove('active'); audio.pause(); } };
 
                 bar.innerHTML = `
-                    ${s.boosted ? '<div class="boost-tag">POTENCIADO</div>' : ''}
-                    ${s.nerfed ? '<div class="nerf-tag">NERFEADO</div>' : ''}
-                    <div class="disc-wrap">
-                        <img src="img/icons/disco.gif" class="disc-gif">
-                    </div>
-                    <div class="song-info">
-                        <h3>${s.name}</h3>
-                        <p>${s.artist}</p>
-                        <span class="diff-badge">${s.death ? 'LEGEND' : 'HARD'} • LVL ${Math.floor((200-s.diff)/10)}</span>
-                    </div>
+                    <div class="disc-wrap"><img src="img/icons/disco.gif" class="disc-gif"></div>
+                    <div class="song-info"><h3>${s.name}</h3><p>${s.artist}</p></div>
                 `;
                 container.appendChild(bar);
             });
@@ -1053,19 +1147,11 @@
             const container = document.getElementById('right-missions-container');
             container.innerHTML = '';
             missionsData.forEach((m, i) => {
-                const isCompleted = completedMissions.includes(m.id);
+                const isComp = completedMissions.includes(m.id);
                 const item = document.createElement('div');
-                item.className = `mission-item enter ${isCompleted ? 'completed' : ''}`;
+                item.className = `mission-item enter ${isComp ? 'completed' : ''}`;
                 item.style.animationDelay = `${i * 0.03}s`;
-                item.innerHTML = `
-                    <div class="disc-wrap">
-                        <img src="img/icons/disco2.gif" class="disc-gif" style="filter: ${isCompleted ? 'hue-rotate(90deg)' : 'none'}">
-                    </div>
-                    <div class="mission-info">
-                        <h3>${m.title}</h3>
-                        <p>${m.desc}</p>
-                    </div>
-                `;
+                item.innerHTML = `<div class="mission-info"><h3>${m.title}</h3><p>${m.desc}</p></div>`;
                 container.appendChild(item);
             });
         }
@@ -1077,269 +1163,36 @@
             card.className = 'profile-card enter';
             card.innerHTML = `
                 <div class="profile-header">
-                    <input type="text" class="user-name-input" value="${userData.name}" onchange="updateUserName(this.value)">
+                    <input type="text" class="user-name-input" value="${userData.name}" onchange="userData.name=this.value">
                     <div class="avatar-container" onclick="document.getElementById('avatar-upload').click()">
                         <img src="${userData.avatar || 'https://via.placeholder.com/150'}" id="profile-img-preview">
-                        <div class="edit-icon">
-                            <svg viewBox="0 0 24 24"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>
-                        </div>
                     </div>
                 </div>
                 <div class="stats-grid">
-                    <div class="stat-box"><span>Puntaje Total</span><b>${totalStats.score.toLocaleString()}</b></div>
-                    <div class="stat-box"><span>Mejor Puntaje</span><b>${totalStats.bestScore.toLocaleString()}</b></div>
-                    <div class="stat-box"><span>Misiones</span><b>${completedMissions.length} / ${missionsData.length}</b></div>
-                    <div class="stat-box"><span>Canciones</span><b>${totalStats.songs}</b></div>
+                    <div class="stat-box"><span>Puntaje</span><b>${totalStats.score}</b></div>
                     <div class="stat-box"><span>Estrellas</span><b>${totalStats.stars} ★</b></div>
-                    <div class="stat-box"><span>Precisión Media</span><b>${totalStats.songs > 0 ? Math.floor((totalStats.score / (totalStats.songs * 5000)) * 100) : 0}%</b></div>
                 </div>
-                <button class="action-btn" style="width: 100%; border-right: 1px solid var(--border); border-radius: 40px; margin-top: 10px;" onclick="saveProfileChanges()">APLICAR CAMBIOS</button>
+                <button class="action-btn" style="width:100%;" onclick="localStorage.setItem('okao_user', JSON.stringify(userData)); notifyMission();">GUARDAR</button>
             `;
             container.appendChild(card);
         }
 
-        function updateUserName(name) {
-            userData.name = name;
-        }
-
-        function handleAvatarChange(e) {
-            const file = e.target.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = (event) => {
-                    userData.avatar = event.target.result;
-                    document.getElementById('profile-img-preview').src = event.target.result;
-                };
-                reader.readAsDataURL(file);
-            }
-        }
-
-        function saveProfileChanges() {
-            localStorage.setItem('okao_user', JSON.stringify(userData));
-            notifyMission();
-        }
-
-        async function showProfileView() {
-            document.querySelectorAll('.menu-bar').forEach(b => b.classList.remove('active'));
-            document.getElementById('btn-perfil').classList.add('active');
-            const containers = ['right-song-container', 'right-settings-container', 'right-missions-container'];
-            for(let id of containers) {
-                const activeCont = document.getElementById(id);
-                if(activeCont.style.display !== 'none') {
-                    const children = activeCont.children;
-                    for(let i = children.length - 1; i >= 0; i--) {
-                        children[i].classList.add('exit');
-                        await new Promise(r => setTimeout(r, 20));
-                    }
-                    activeCont.style.display = 'none';
-                }
-            }
-            document.getElementById('right-profile-container').style.display = 'flex';
-            initProfileView();
-            audio.pause();
-            audio.currentTime = 0;
-            isPlaying = false;
-            document.getElementById('bg-overlay').classList.remove('active');
-        }
-
-        async function showMissionsView() {
-            document.querySelectorAll('.menu-bar').forEach(b => b.classList.remove('active'));
-            document.getElementById('btn-misiones').classList.add('active');
-            const containers = ['right-song-container', 'right-settings-container', 'right-profile-container'];
-            for(let id of containers) {
-                const activeCont = document.getElementById(id);
-                if(activeCont.style.display !== 'none') {
-                    const children = activeCont.children;
-                    for(let i = children.length - 1; i >= 0; i--) {
-                        children[i].classList.add('exit');
-                        await new Promise(r => setTimeout(r, 20));
-                    }
-                    activeCont.style.display = 'none';
-                }
-            }
-            document.getElementById('right-missions-container').style.display = 'flex';
-            initMissionsList();
-        }
-
-        async function showSettingsView() {
-            document.querySelectorAll('.menu-bar').forEach(b => b.classList.remove('active'));
-            document.getElementById('btn-ajustes').classList.add('active');
-            const containers = ['right-song-container', 'right-missions-container', 'right-profile-container'];
-            for(let id of containers) {
-                const activeCont = document.getElementById(id);
-                if(activeCont.style.display !== 'none') {
-                    const children = activeCont.children;
-                    for(let i = children.length - 1; i >= 0; i--) {
-                        children[i].classList.add('exit');
-                        await new Promise(r => setTimeout(r, 20));
-                    }
-                    activeCont.style.display = 'none';
-                }
-            }
-            document.getElementById('right-settings-container').style.display = 'flex';
-            const settings = document.querySelectorAll('.setting-item');
-            settings.forEach(s => s.classList.remove('exit'));
-        }
-
-        async function showMainView() {
-            document.querySelectorAll('.menu-bar').forEach(b => b.classList.remove('active'));
-            document.getElementById('btn-inicio').classList.add('active');
-            const containers = ['right-settings-container', 'right-missions-container', 'right-profile-container'];
-            for(let id of containers) {
-                const activeCont = document.getElementById(id);
-                if(activeCont.style.display !== 'none') {
-                    const children = activeCont.children;
-                    for(let i = children.length - 1; i >= 0; i--) {
-                        children[i].classList.add('exit');
-                        await new Promise(r => setTimeout(r, 20));
-                    }
-                    activeCont.style.display = 'none';
-                }
-            }
-            document.getElementById('right-song-container').style.display = 'flex';
-            initSongList();
-        }
-
-        function notifyMission() {
-            const el = document.getElementById('notification');
-            sfxMission.currentTime = 0;
-            sfxMission.play();
-            el.classList.add('active');
-            setTimeout(() => el.classList.remove('active'), 3000);
-        }
-
-        function checkMissions(win) {
-            if (!isPlaying || currentGameMode === 'auto' || currentGameMode === 'recovery') return;
-            let newlyCompleted = false;
-            const currentSong = songs[selectedSongIndex];
-            
-            if (win) {
-                totalStats.score += score;
-                totalStats.songs += 1;
-                if(score > totalStats.bestScore) totalStats.bestScore = score;
-                let earnedStars = 1 + (lives >= 2 ? 1 : 0) + (misses === 0 ? 1 : 0);
-                totalStats.stars += earnedStars;
-                localStorage.setItem('okao_stats', JSON.stringify(totalStats));
-            }
-
-            missionsData.forEach(m => {
-                if (completedMissions.includes(m.id)) return;
-                let achieved = false;
-                switch(m.goal.type) {
-                    case 'score': if(score >= m.goal.value) achieved = true; break;
-                    case 'total_score': if(totalStats.score >= m.goal.value) achieved = true; break;
-                    case 'combo': if(maxCombo >= m.goal.value) achieved = true; break;
-                    case 'perfects': if(perfects >= m.goal.value) achieved = true; break;
-                    case 'win': if(win) achieved = true; break;
-                    case 'miss': if(win && misses <= m.goal.value) achieved = true; break;
-                    case 'lives': if(win && lives >= m.goal.value) achieved = true; break;
-                    case 'stars': 
-                        let stars = win ? (1 + (lives >= 2 ? 1 : 0) + (misses === 0 ? 1 : 0)) : 0;
-                        if(stars >= m.goal.value) achieved = true; 
-                        break;
-                    case 'death_win': if(win && currentSong.death) achieved = true; break;
-                    case 'songs_completed': if(totalStats.songs >= m.goal.value) achieved = true; break;
-                    case 'ratio_perfect': 
-                        if(win && (perfects / (perfects + misses)) >= m.goal.value) achieved = true; 
-                        break;
-                    case 'total_stars': if(totalStats.stars >= m.goal.value) achieved = true; break;
-                    case 'speed_win': if(win && currentSong.speed >= m.goal.value) achieved = true; break;
-                    case 'song_id_win': if(win && currentSong.id === m.goal.value) achieved = true; break;
-                    case 'song_id_perfects': if(win && currentSong.id === m.goal.value.id && perfects >= m.goal.value.count) achieved = true; break;
-                    case 'song_id_score': if(win && currentSong.id === m.goal.value.id && score >= m.goal.value.score) achieved = true; break;
-                }
-                if(achieved) {
-                    completedMissions.push(m.id);
-                    newlyCompleted = true;
-                }
-            });
-            if(newlyCompleted) {
-                localStorage.setItem('okao_missions', JSON.stringify(completedMissions));
-                notifyMission();
-            }
-        }
-
-        function startKeyCapture(index) {
-            captureIndex = index;
-            document.querySelectorAll('.key-input').forEach(el => el.classList.remove('waiting'));
-            document.getElementById(`cfg-${index}`).classList.add('waiting');
-        }
-
-        function updateVolume(val) {
-            audio.volume = val;
-            document.getElementById('vol-val').textContent = Math.round(val * 100) + '%';
-        }
-
-        function updateOffset(val) {
-            audioOffset = parseInt(val);
-            document.getElementById('offset-val').textContent = val + 'ms';
-        }
-
-        function updateTrackOpacity(val) {
-            trackOpacity = val;
-            document.documentElement.style.setProperty('--track-opacity', val);
-            document.getElementById('opacity-val').textContent = Math.round(val * 500) + '%';
-        }
-
-        function updateFlashIntensity(val) {
-            flashIntensity = parseInt(val);
-            document.getElementById('flash-val').textContent = val;
-        }
-
-        function saveLocalSettings() {
-            localStorage.setItem('okao_keys', JSON.stringify(gameKeys));
-            localStorage.setItem('okao_vol', audio.volume);
-            localStorage.setItem('okao_offset', audioOffset);
-            localStorage.setItem('okao_opacity', trackOpacity);
-            localStorage.setItem('okao_flash', flashIntensity);
-        }
-
-        function loadSavedSettings() {
-            const savedKeys = localStorage.getItem('okao_keys');
-            const savedVol = localStorage.getItem('okao_vol');
-            const savedOffset = localStorage.getItem('okao_offset');
-            const savedOpacity = localStorage.getItem('okao_opacity');
-            const savedFlash = localStorage.getItem('okao_flash');
-            if (savedKeys) {
-                gameKeys = JSON.parse(savedKeys);
-                gameKeys.forEach((k, i) => document.getElementById(`cfg-${i}`).textContent = k);
-            }
-            if (savedVol) {
-                audio.volume = savedVol;
-                document.getElementById('vol-range').value = savedVol;
-                document.getElementById('vol-val').textContent = Math.round(savedVol * 100) + '%';
-            }
-            if (savedOffset) {
-                audioOffset = parseInt(savedOffset);
-                document.getElementById('offset-range').value = audioOffset;
-                document.getElementById('offset-val').textContent = audioOffset + 'ms';
-            }
-            if (savedOpacity) {
-                trackOpacity = savedOpacity;
-                document.getElementById('opacity-range').value = trackOpacity;
-                updateTrackOpacity(trackOpacity);
-            }
-            if (savedFlash) {
-                flashIntensity = parseInt(savedFlash);
-                document.getElementById('flash-range').value = savedFlash;
-                document.getElementById('flash-val').textContent = flashIntensity;
-            }
-        }
+        function updateVolume(val) { audio.volume = val; document.getElementById('vol-val').textContent = Math.round(val * 100) + '%'; }
+        function updateOffset(val) { audioOffset = parseInt(val); document.getElementById('offset-val').textContent = val + 'ms'; }
+        function updateTrackOpacity(val) { document.documentElement.style.setProperty('--track-opacity', val); document.getElementById('opacity-val').textContent = Math.round(val * 500) + '%'; }
+        function updateFlashIntensity(val) { flashIntensity = parseInt(val); document.getElementById('flash-val').textContent = val; }
+        function saveLocalSettings() { localStorage.setItem('okao_keys', JSON.stringify(gameKeys)); localStorage.setItem('okao_vol', audio.volume); notifyMission(); }
 
         async function startSequence(index) {
-            selectedSongIndex = index;
             isPlaying = true;
             if (!audioCtx) {
                 audioCtx = new (window.AudioContext || window.webkitAudioContext)();
                 analyzer = audioCtx.createAnalyser();
                 const source = audioCtx.createMediaElementSource(audio);
-                source.connect(analyzer);
-                analyzer.connect(audioCtx.destination);
-                analyzer.fftSize = 256;
-                dataArray = new Uint8Array(analyzer.frequencyBinCount);
+                source.connect(analyzer); analyzer.connect(audioCtx.destination);
+                analyzer.fftSize = 256; dataArray = new Uint8Array(analyzer.frequencyBinCount);
             }
             audio.src = songs[index].path;
-            audio.load();
             document.getElementById('main-ui').style.opacity = '0';
             setTimeout(() => {
                 document.getElementById('main-ui').style.display = 'none';
@@ -1350,10 +1203,7 @@
 
         async function runIntro() {
             const msg = document.getElementById('intro-msg');
-            const h = [document.getElementById('ih1'), document.getElementById('ih2'), document.getElementById('ih3')];
-            for(let i=0; i<3; i++) { h[i].style.opacity = '1'; h[i].style.transform = 'scale(1)'; await new Promise(r => setTimeout(r, 300)); }
-            msg.textContent = "¿LISTO?"; msg.style.opacity = '1'; await new Promise(r => setTimeout(r, 600));
-            msg.textContent = "¡GO!"; await new Promise(r => setTimeout(r, 400));
+            msg.textContent = "¿LISTO?"; msg.style.opacity = '1'; await new Promise(r => setTimeout(r, 1000));
             document.getElementById('intro-layer').style.display = 'none';
             document.getElementById('game-canvas').style.display = 'flex';
             setTimeout(() => { document.getElementById('game-canvas').style.opacity = '1'; initGame(); }, 100);
@@ -1362,294 +1212,92 @@
         function initGame() {
             isDead = false; isPaused = false; analyzerActive = true;
             combo = 0; score = 0; perfects = 0; misses = 0; maxCombo = 0;
-            audio.currentTime = 0;
-            audio.playbackRate = 1.0;
-            audio.play();
-
-            if (currentGameMode === 'recovery') {
-                health = 50;
-                document.getElementById('lives-ui').style.display = 'none';
-                document.getElementById('health-ui').style.display = 'block';
-                updateHealthUI();
-            } else {
-                lives = songs[selectedSongIndex].death ? 1 : 3;
-                document.getElementById('lives-ui').style.display = 'flex';
-                document.getElementById('health-ui').style.display = 'none';
-                updateLivesUI();
-            }
-
+            audio.currentTime = 0; audio.play();
+            if (currentGameMode === 'recovery') { health = 50; updateHealthUI(); } else { lives = 3; updateLivesUI(); }
             requestAnimationFrame(gameLoop);
         }
 
         function gameLoop() {
             if (!analyzerActive || isPaused || isDead) return;
             analyzer.getByteFrequencyData(dataArray);
-            let bass = 0, lowMid = 0, mid = 0, treble = 0;
-            for(let i=0; i<4; i++) bass += dataArray[i];
-            for(let i=4; i<12; i++) lowMid += dataArray[i];
-            for(let i=12; i<30; i++) mid += dataArray[i];
-            for(let i=30; i<60; i++) treble += dataArray[i];
-            bass /= 4; lowMid /= 8; mid /= 18; treble /= 30;
-            let currentEnergy = (bass + lowMid + mid + treble) / 4;
-            dynamicSpeed = 0.8 + (currentEnergy / 255) * 1.2;
+            let energy = 0; for(let i=0; i<20; i++) energy += dataArray[i]; energy /= 20;
+            dynamicSpeed = 0.8 + (energy / 255) * 1.2;
             const now = Date.now() + audioOffset;
-            const song = songs[selectedSongIndex];
-            let dynamicCooldown = (spawnCooldown + (song.diff * 0.5)) / (0.6 + (currentEnergy / 100));
-            
-            if (now - lastSpawnTime > dynamicCooldown) {
-                let lanesToSpawn = [];
-                let threshold = song.diff;
-                if (currentEnergy > threshold + 30 && Math.random() < 0.3) {
-                    const patternRand = Math.random();
-                    if (patternRand > 0.7) patternMode = 'ladder';
-                    else if (patternRand > 0.4) patternMode = 'burst';
-                    else patternMode = 'quad';
-                } else {
-                    patternMode = 'random';
-                }
-                if (patternMode === 'ladder') {
-                    lanesToSpawn.push(currentLadderLane);
-                    currentLadderLane += ladderDirection;
-                    if (currentLadderLane >= 3 || currentLadderLane <= 0) ladderDirection *= -1;
-                } else if (patternMode === 'burst') {
-                    let mainLane = Math.floor(Math.random() * 4);
-                    lanesToSpawn.push(mainLane);
-                    if (Math.random() > 0.5) lanesToSpawn.push((mainLane + 2) % 4);
-                } else if (patternMode === 'quad') {
-                    let startLane = Math.floor(Math.random() * 4);
-                    lanesToSpawn = [startLane, (startLane + 1) % 4, (startLane + 2) % 4, (startLane + 3) % 4];
-                } else {
-                    if (bass > threshold - 5) lanesToSpawn.push(Math.random() > 0.5 ? 0 : 3);
-                    if (lowMid > threshold + 10) lanesToSpawn.push(1);
-                    if (mid > threshold + 20) lanesToSpawn.push(2);
-                    if (treble > threshold + 30) lanesToSpawn.push(3);
-                }
-                let laneCount = {};
-                activeNotes.forEach(n => {
-                    if (parseFloat(n.el.style.top) < 200) {
-                        laneCount[n.lane] = (laneCount[n.lane] || 0) + 1;
-                    }
-                });
-                let balancedLanes = lanesToSpawn.filter(l => (laneCount[l] || 0) === 0);
-                let finalLanes = [...new Set(balancedLanes)];
-                if (patternMode !== 'quad' && finalLanes.length > 2) finalLanes = finalLanes.slice(0, 2);
-                if (finalLanes.length > 0) {
-                    finalLanes.forEach(l => spawnNote(l));
-                    lastSpawnTime = now;
-                }
+            if (now - lastSpawnTime > (spawnCooldown + (songs[selectedSongIndex].diff * 0.5))) {
+                spawnNote(Math.floor(Math.random() * 4));
+                lastSpawnTime = now;
             }
-
             const hitZone = window.innerHeight - 165;
             activeNotes.forEach(n => {
-                let currentY = parseFloat(n.el.style.top || -100);
-                let speedFactor = song.speed * 8.5 * dynamicSpeed;
-                n.el.style.top = (currentY + speedFactor) + 'px';
-
-                if (currentGameMode === 'auto' && currentY > hitZone - 20 && !n.hit) {
-                    handleInput(n.lane);
-                }
-
+                let currentY = parseFloat(n.el.style.top);
+                n.el.style.top = (currentY + (songs[selectedSongIndex].speed * 8 * dynamicSpeed)) + 'px';
                 if (currentY > window.innerHeight) {
-                    n.el.remove();
-                    activeNotes = activeNotes.filter(x => x.id !== n.id);
-                    if (!n.hit) {
-                        if (currentGameMode === 'recovery') {
-                            modifyHealth(-5);
-                            updateStatus('MISS', '#ff4757');
-                            misses++;
-                            combo = 0;
-                            document.getElementById('combo-text').textContent = "0";
-                        } else {
-                            loseLife();
-                        }
-                    }
+                    n.el.remove(); activeNotes = activeNotes.filter(x => x.id !== n.id);
+                    if (!n.hit) { if (currentGameMode === 'recovery') modifyHealth(-5); else loseLife(); }
                 }
             });
             requestAnimationFrame(gameLoop);
         }
 
         function spawnNote(lane) {
-            const id = Math.random();
-            const el = document.createElement('div');
-            el.className = 'note';
-            el.dataset.lane = lane;
-            el.innerHTML = arrowSvgs[lane];
+            const id = Math.random(); const el = document.createElement('div');
+            el.className = 'note'; el.dataset.lane = lane; el.innerHTML = arrowSvgs[lane];
             const slot = document.getElementById(`s${lane}`);
-            const trackRect = document.getElementById('track').getBoundingClientRect();
-            const slotRect = slot.getBoundingClientRect();
-            el.style.left = (slotRect.left - trackRect.left) + 'px';
-            el.style.top = '-100px';
-            document.getElementById('track').appendChild(el);
+            el.style.left = slot.getBoundingClientRect().left + 'px';
+            el.style.top = '-100px'; document.getElementById('track').appendChild(el);
             activeNotes.push({ id, el, lane, hit: false });
         }
 
         function handleInput(lane) {
             if(isPaused || isDead) return;
             const slot = document.getElementById(`s${lane}`);
-            slot.classList.add('pressed');
-            if (flashIntensity > 0) slot.style.boxShadow = `0 0 ${flashIntensity}px var(--k${lane+1})`;
-            setTimeout(() => { slot.classList.remove('pressed'); slot.style.boxShadow = 'none'; }, 100);
-            
+            slot.classList.add('pressed'); setTimeout(() => slot.classList.remove('pressed'), 100);
             const hitZone = window.innerHeight - 165;
             let note = activeNotes.find(n => n.lane == lane && !n.hit && parseFloat(n.el.style.top) > hitZone - 120);
-            
             if (note) {
-                const noteY = parseFloat(note.el.style.top);
-                const dist = Math.abs(noteY - hitZone);
-                note.hit = true;
-                note.el.remove();
-                
-                if (currentGameMode === 'recovery') {
-                    if (dist < 50) { 
-                        modifyHealth(3); 
-                        updateStatus('PERFECT', '#00ffcc');
-                        perfects++;
-                    } else { 
-                        modifyHealth(1); 
-                        updateStatus('GREAT', '#eab000');
-                    }
-                    combo++;
-                } else if (currentGameMode === 'auto') {
-                    updateStatus('AUTO', '#fff');
-                    combo++;
-                } else {
-                    if (dist < 50) { 
-                        score += (100 * (1 + combo * 0.02)); 
-                        combo++; 
-                        perfects++; 
-                        updateStatus('PERFECT', '#00ffcc'); 
-                    } else { 
-                        score += (50 * (1 + combo * 0.01)); 
-                        combo++; 
-                        updateStatus('GREAT', '#eab000'); 
-                    }
-                }
-                
-                if (combo > maxCombo) maxCombo = combo;
-                document.getElementById('combo-text').textContent = combo;
-            } else { 
-                if (currentGameMode === 'recovery') {
-                    modifyHealth(-5);
-                    updateStatus('MISS', '#ff4757');
-                    misses++;
-                    combo = 0;
-                    document.getElementById('combo-text').textContent = "0";
-                } else if (currentGameMode !== 'auto') {
-                    loseLife();
-                }
-            }
+                const dist = Math.abs(parseFloat(note.el.style.top) - hitZone);
+                note.hit = true; note.el.remove();
+                if (dist < 50) { score += 100; combo++; perfects++; updateStatus('PERFECT', '#00ffcc'); if(currentGameMode==='recovery') modifyHealth(3); }
+                else { score += 50; combo++; updateStatus('GREAT', '#eab000'); if(currentGameMode==='recovery') modifyHealth(1); }
+                if (combo > maxCombo) maxCombo = combo; document.getElementById('combo-text').textContent = combo;
+            } else { if(currentGameMode==='recovery') modifyHealth(-5); else loseLife(); }
         }
 
-        function modifyHealth(val) {
-            health += val;
-            if (health > 100) health = 100;
-            if (health <= 0) { health = 0; endGame(false); }
-            updateHealthUI();
-        }
-
-        function updateHealthUI() {
-            document.getElementById('health-fill').style.height = health + '%';
-        }
-
-        function loseLife() {
-            lives--; misses++; combo = 0;
-            document.getElementById('combo-text').textContent = "0";
-            updateLivesUI();
-            updateStatus('MISS', '#ff4757');
-            if (lives <= 0) endGame(false);
-        }
-
-        function updateLivesUI() {
-            for(let i=0; i<3; i++) document.getElementById(`life-${i}`).style.opacity = i < lives ? '1' : '0.1';
-        }
-
-        function updateStatus(t, c) {
-            const s = document.getElementById('status-text');
-            s.textContent = t; s.style.color = c; s.style.opacity = '1';
-            setTimeout(() => { if(s.textContent === t) s.style.opacity = '0'; }, 500);
-        }
+        function modifyHealth(val) { health += val; if(health>100) health=100; if(health<=0) endGame(false); updateHealthUI(); }
+        function updateHealthUI() { document.getElementById('health-fill').style.height = health + '%'; }
+        function loseLife() { lives--; misses++; combo = 0; document.getElementById('combo-text').textContent = "0"; updateLivesUI(); updateStatus('MISS', '#ff4757'); if (lives <= 0) endGame(false); }
+        function updateLivesUI() { for(let i=0; i<3; i++) document.getElementById(`life-${i}`).style.opacity = i < lives ? '1' : '0.1'; }
+        function updateStatus(t, c) { const s = document.getElementById('status-text'); s.textContent = t; s.style.color = c; s.style.opacity = '1'; setTimeout(() => s.style.opacity = '0', 500); }
 
         function togglePause() {
-            if(isDead) return;
-            isPaused = !isPaused;
-            if (isPaused) audio.pause(); else { audio.play(); requestAnimationFrame(gameLoop); }
-            const overlay = document.getElementById('overlay-game');
-            overlay.style.display = isPaused ? 'flex' : 'none';
-            overlay.style.backgroundImage = isPaused ? "url('img/ft/f1.jpg')" : "none";
+            isPaused = !isPaused; if (isPaused) audio.pause(); else { audio.play(); requestAnimationFrame(gameLoop); }
+            document.getElementById('overlay-game').style.display = isPaused ? 'flex' : 'none';
             document.getElementById('overlay-title').textContent = "PAUSADO";
-            document.getElementById('results-display').style.display = 'none';
-            document.getElementById('btn-resume').style.display = 'block';
-            if(isPaused) {
-                const btns = document.querySelectorAll('.action-btn');
-                btns.forEach(b => { b.style.animation = 'none'; setTimeout(() => b.style.animation = '', 10); });
-            }
         }
 
-        function restartSong() {
-            activeNotes.forEach(n => n.el.remove());
-            activeNotes = [];
-            document.getElementById('overlay-game').style.display = 'none';
-            initGame();
-        }
+        function restartSong() { activeNotes.forEach(n => n.el.remove()); activeNotes = []; document.getElementById('overlay-game').style.display = 'none'; initGame(); }
 
         function endGame(win) {
             isDead = true; analyzerActive = false; audio.pause();
-            const overlay = document.getElementById('overlay-game');
-            overlay.style.display = 'flex';
-            overlay.style.backgroundImage = "url('img/ft/f2.jpg')";
-            document.getElementById('btn-resume').style.display = 'none';
-            document.getElementById('results-display').style.display = 'flex';
+            document.getElementById('overlay-game').style.display = 'flex';
             document.getElementById('overlay-title').textContent = win ? "TERMINADO" : "FALLIDO";
-            
-            const stars = document.querySelectorAll('.star');
-            stars.forEach(s => s.classList.remove('active'));
-            
-            if (currentGameMode === 'auto' || currentGameMode === 'recovery') {
-                document.getElementById('res-score').textContent = "N/A";
-                if (win) {
-                    stars[0].classList.add('active');
-                    stars[1].classList.add('active');
-                    stars[2].classList.add('active');
-                }
-            } else {
-                if(win) {
-                    stars[0].classList.add('active');
-                    if(lives >= 2) stars[1].classList.add('active');
-                    if(misses === 0) stars[2].classList.add('active');
-                }
-                document.getElementById('res-score').textContent = Math.floor(score);
-            }
-            
+            document.getElementById('results-display').style.display = 'flex';
+            document.getElementById('res-score').textContent = Math.floor(score);
             document.getElementById('res-combo').textContent = maxCombo;
             document.getElementById('res-perfect').textContent = perfects;
             document.getElementById('res-miss').textContent = misses;
-            checkMissions(win);
-            isPlaying = false;
         }
 
+        function notifyMission() { const el = document.getElementById('notification'); el.classList.add('active'); setTimeout(() => el.classList.remove('active'), 3000); }
+
         window.addEventListener('keydown', (e) => {
-            const k = e.key.toLowerCase();
-            if (captureIndex !== -1) {
-                gameKeys[captureIndex] = k;
-                document.getElementById(`cfg-${captureIndex}`).textContent = k;
-                document.getElementById(`cfg-${captureIndex}`).classList.remove('waiting');
-                captureIndex = -1;
-                return;
-            }
             if (e.key === 'Escape') togglePause();
-            if (e.key === 'Enter' && isPaused && !isDead) togglePause();
-            if (e.key === 'Enter' && isDead) restartSong();
-            const idx = gameKeys.indexOf(k);
+            const idx = gameKeys.indexOf(e.key.toLowerCase());
             if (idx !== -1) handleInput(idx);
         });
 
-        audio.ontimeupdate = () => {
-            document.getElementById('progress-bar').style.width = `${(audio.currentTime / audio.duration) * 100}%`;
-        };
+        audio.ontimeupdate = () => { document.getElementById('progress-bar').style.width = `${(audio.currentTime / audio.duration) * 100}%`; };
         audio.onended = () => endGame(true);
-
-        loadSavedSettings();
-        initSongList();
     </script>
 </body>
 </html>
