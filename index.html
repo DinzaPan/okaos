@@ -109,7 +109,7 @@
             width: 340px;
         }
 
-        #right-song-container, #right-settings-container, #right-missions-container, #right-profile-container {
+        #right-song-container, #right-settings-container, #right-missions-container, #right-profile-container, #right-mods-container {
             position: fixed;
             right: 0;
             display: flex;
@@ -125,9 +125,9 @@
             transition: 0.8s cubic-bezier(0.2, 1, 0.3, 1);
         }
 
-        #right-song-container::-webkit-scrollbar, #right-settings-container::-webkit-scrollbar, #right-missions-container::-webkit-scrollbar, #right-profile-container::-webkit-scrollbar { display: none; }
+        #right-song-container::-webkit-scrollbar, #right-settings-container::-webkit-scrollbar, #right-missions-container::-webkit-scrollbar, #right-profile-container::-webkit-scrollbar, #right-mods-container::-webkit-scrollbar { display: none; }
 
-        .song-bar, .setting-item, .mission-item, .profile-card {
+        .song-bar, .setting-item, .mission-item, .profile-card, .mod-item {
             background: rgba(255, 255, 255, 0.03);
             border: 1px solid var(--border);
             border-right: none;
@@ -141,6 +141,10 @@
             transition: 0.6s cubic-bezier(0.2, 1, 0.3, 1);
             backdrop-filter: blur(10px);
             position: relative;
+        }
+
+        .mod-item {
+            cursor: pointer;
         }
 
         .profile-card {
@@ -161,12 +165,12 @@
             background: rgba(46, 213, 115, 0.05);
         }
 
-        .song-bar.exit, .setting-item.exit, .mission-item.exit, .profile-card.exit {
+        .song-bar.exit, .setting-item.exit, .mission-item.exit, .profile-card.exit, .mod-item.exit {
             transform: translateX(120%) !important;
             opacity: 0;
         }
 
-        .song-bar.enter, .setting-item.enter, .mission-item.enter, .profile-card.enter {
+        .song-bar.enter, .setting-item.enter, .mission-item.enter, .profile-card.enter, .mod-item.enter {
             animation: bounceInRight 0.8s cubic-bezier(0.2, 1, 0.3, 1) forwards;
         }
 
@@ -186,7 +190,7 @@
         .boost-tag { background: var(--boost); box-shadow: 0 0 15px var(--boost); }
         .nerf-tag { background: var(--nerf); box-shadow: 0 0 15px var(--nerf); }
 
-        .song-bar:hover, .setting-item:hover, .mission-item:hover {
+        .song-bar:hover, .setting-item:hover, .mission-item:hover, .mod-item:hover {
             background: rgba(255, 255, 255, 0.1);
             width: 660px;
             border-color: rgba(255, 255, 255, 0.5);
@@ -210,9 +214,9 @@
             object-fit: cover;
         }
 
-        .song-info, .setting-info, .mission-info { text-align: right; width: 100%; }
-        .song-info h3, .setting-info h3, .mission-info h3 { font-size: 1.8rem; margin-bottom: 5px; }
-        .song-info p, .setting-info p, .mission-info p { font-size: 1.1rem; opacity: 0.7; }
+        .song-info, .setting-info, .mission-info, .mod-info { text-align: right; width: 100%; }
+        .song-info h3, .setting-info h3, .mission-info h3, .mod-info h3 { font-size: 1.8rem; margin-bottom: 5px; }
+        .song-info p, .setting-info p, .mission-info p, .mod-info p { font-size: 1.1rem; opacity: 0.7; }
 
         .key-config-grid {
             display: grid;
@@ -778,6 +782,30 @@
             text-transform: uppercase;
         }
 
+        #mod-upload-input {
+            display: none;
+        }
+
+        .upload-mod-btn {
+            background: linear-gradient(90deg, var(--glass) 0%, rgba(255,255,255,0) 100%);
+            border: 1px solid var(--border);
+            border-right: none;
+            padding: 25px 40px;
+            width: 580px;
+            border-radius: 80px 0 0 80px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            backdrop-filter: blur(10px);
+            margin-bottom: 20px;
+        }
+
+        .upload-mod-btn:hover {
+            background: var(--accent);
+            color: #000;
+            width: 660px;
+        }
     </style>
 </head>
 <body>
@@ -792,11 +820,13 @@
             <div id="btn-inicio" class="menu-bar active" style="animation-delay: 0.1s;" onclick="showMainView()">Inicio</div>
             <div id="btn-perfil" class="menu-bar" style="animation-delay: 0.2s;" onclick="showProfileView()">Perfil</div>
             <div id="btn-misiones" class="menu-bar" style="animation-delay: 0.3s;" onclick="showMissionsView()">Misiones</div>
+            <div id="btn-mods" class="menu-bar" style="animation-delay: 0.35s;" onclick="showModsView()">Mods</div>
             <div id="btn-ajustes" class="menu-bar" style="animation-delay: 0.4s;" onclick="showSettingsView()">Ajustes</div>
         </div>
         <div id="right-song-container"></div>
         <div id="right-missions-container" style="display: none;"></div>
         <div id="right-profile-container" style="display: none;"></div>
+        <div id="right-mods-container" style="display: none;"></div>
         <div id="right-settings-container" style="display: none;">
             <div class="setting-item enter">
                 <div class="setting-info">
@@ -860,6 +890,7 @@
     </div>
 
     <input type="file" id="avatar-upload" accept="image/*" style="display: none;" onchange="handleAvatarChange(event)">
+    <input type="file" id="mod-upload-input" accept=".html" style="display: none;" onchange="handleModUpload(event)">
 
     <div id="mode-selector">
         <h2 class="mode-title">Selecciona Modo</h2>
@@ -942,20 +973,19 @@
 
     <script>
         const songs = [
-            { id: 0, name: "Puertas", artist: "El Cuarteto de Nos", path: "music/puertas.mp3", duration: 228, diff: 180, speed: 2.5, bg: "img/fn/music1.webp", yt: "K5hEosB62V0" },
-            { id: 1, name: "ART OF GUITAR", artist: "Marcin, RJ Pasin", path: "music/marcin.mp3", duration: 143, diff: 185, speed: 1.5, nerfed: true, bg: "img/fn/music2.webp", yt: "70GZ_e6S1R4" },
-            { id: 2, name: "Everything Black", artist: "Unlike Pluto", path: "music/unlike.mp3", duration: 229, diff: 180, speed: 2.2, bg: "img/fn/music3.webp", yt: "zXyOZvD1zU0" },
-            { id: 3, name: "Chop Suey!", artist: "System Of A To Down", path: "music/system.mp3", duration: 208, diff: 170, speed: 1.6, bg: "img/fn/music4.webp", yt: "CSvFp5Wfms8" },
-            { id: 4, name: "Adoウ타카타라라바이", artist: "Ado", path: "music/onepiece.mp3", duration: 193, diff: 135, speed: 2.0, bg: "img/fn/music5.webp", yt: "hyV1VfH9Srs" },
-            { id: 5, name: "Pañuelito Rojo", artist: "Big Metra", path: "music/bigmetra.mp3", duration: 216, diff: 110, speed: 1.5, bg: "img/fn/music6.webp", yt: "8lJ0_jS9SRA" },
-            { id: 6, name: "Trato de no trabarme", artist: "Big Metra", path: "music/bigmetra2.mp3", duration: 228, diff: 75, death: true, speed: 1.3, bg: "img/fn/music7.webp", yt: "mUeWvL-8q5A" },
-            { id: 7, name: "Puppet vs Tails Doll", artist: "Kronno Zomber", path: "music/puppet.mp3", duration: 285, diff: 130, speed: 2.1, bg: "img/fn/music8.webp", yt: "D0OofA5K0k4" },
-            { id: 8, name: "AiAiA", artist: "Ado", path: "music/aiaia.mp3", duration: 259, diff: 145, speed: 2.2, bg: "img/fn/music9.webp", yt: "_8CNByAq1n4" },
-            { id: 9, name: "Given Up [Official Music Video]", artist: "Linkin Park", path: "music/givenup.mp3", duration: 191, diff: 120, speed: 2.3, bg: "img/fn/music10.webp", yt: "0xyxtzskW4A" },
-            { id: 10, name: "17 Años", artist: "Los Ángeles Azules", path: "music/17años.mp3", duration: 181, diff: 140, speed: 1.7, bg: "img/fn/music11.webp", yt: "0Gf5A-6_zYw" },
-            { id: 11, name: "IGAKU/Medicine", artist: "Desconocido", path: "music/igakumedicine.mp3", duration: 123, diff: 160, speed: 1.6, bg: "img/fn/music12.webp", yt: "zXyOZvD1zU0" },
-            { id: 12, name: "처형박수 (Execution Clap)", artist: "카사네 테토", path: "music/execution.mp3", duration: 194, diff: 155, speed: 1.8, bg: "img/fn/music13.webp", yt: "m6E27x-y6C0" },
-            { id: 13, name: "505 (505 - Arctic Monkeys)", artist: "Arctic Monkeys", path: "music/505.mp3", duration: 254, diff: 150, speed: 1.8, bg: "img/fn/music14.webp", yt: "qU9mHegkTc4" }
+            { id: 0, name: "Puertas", artist: "El Cuarteto de Nos", path: "music/puertas.mp3", duration: 228, diff: 180, speed: 2.5, bg: "img/fn/music1.webp", yt: "" },
+            { id: 1, name: "ART OF GUITAR", artist: "Marcin, RJ Pasin", path: "music/marcin.mp3", duration: 143, diff: 185, speed: 1.5, nerfed: true, bg: "img/fn/music2.webp", yt: "iHlfdyLMHOo" },
+            { id: 2, name: "Everything Black", artist: "Unlike Pluto", path: "music/unlike.mp3", duration: 229, diff: 180, speed: 2.2, bg: "img/fn/music3.webp", yt: "mWKDZRJWdF4" },
+            { id: 3, name: "Chop Suey!", artist: "System Of A Down", path: "music/system.mp3", duration: 208, diff: 170, speed: 1.6, bg: "img/fn/music4.webp", yt: "CSvFpBOe8eY" },
+            { id: 4, name: "Adoウタカタララバイ", artist: "Ado", path: "music/onepiece.mp3", duration: 193, diff: 135, speed: 2.0, bg: "img/fn/music5.webp", yt: "hyV1AJiFNyo" },
+            { id: 5, name: "Pañuelito Rojo", artist: "Big Metra", path: "music/bigmetra.mp3", duration: 216, diff: 110, speed: 1.5, bg: "img/fn/music6.webp", yt: "" },
+            { id: 6, name: "Trato de no trabarme", artist: "Big Metra", path: "music/bigmetra2.mp3", duration: 228, diff: 75, death: true, speed: 1.3, bg: "img/fn/music7.webp", yt: "" },
+            { id: 7, name: "Puppet vs Tails Doll", artist: "Kronno Zomber", path: "music/puppet.mp3", duration: 285, diff: 130, speed: 2.1, bg: "img/fn/music8.webp", yt: "" },
+            { id: 8, name: "Given Up", artist: "Linkin Park", path: "music/givenup.mp3", duration: 191, diff: 120, speed: 2.3, bg: "img/fn/music10.webp", yt: "" },
+            { id: 9, name: "17 Años", artist: "Los Ángeles Azules", path: "music/17años.mp3", duration: 181, diff: 140, speed: 1.7, bg: "img/fn/music11.webp", yt: "" },
+            { id: 10, name: "505", artist: "Arctic Monkeys", path: "music/505.mp3", duration: 254, diff: 150, speed: 1.8, bg: "img/fn/music14.webp", yt: "" },
+            { id: 11, name: "IGAKU/Medicine", artist: "Desconocido", path: "music/igakumedicine.mp3", duration: 123, diff: 160, speed: 1.6, bg: "img/fn/music12.webp", yt: "" },
+            { id: 12, name: "처형박수 (Execution Clap)", artist: "카사네 테토", path: "music/execution.mp3", duration: 194, diff: 155, speed: 1.8, bg: "img/fn/music13.webp", yt: "YcxhmHEykPg" }
         ];
 
         const arrowSvgs = [
@@ -1023,6 +1053,7 @@
         let completedMissions = JSON.parse(localStorage.getItem('okao_missions') || '[]');
         let totalStats = JSON.parse(localStorage.getItem('okao_stats') || '{"score":0, "songs":0, "stars":0, "bestScore":0}');
         let userData = JSON.parse(localStorage.getItem('okao_user') || '{"name":"Usuario", "avatar":""}');
+        let modsList = JSON.parse(localStorage.getItem('okao_mods') || '[]');
 
         function initSongList() {
             const container = document.getElementById('right-song-container');
@@ -1066,6 +1097,53 @@
                 `;
                 container.appendChild(bar);
             });
+        }
+
+        function initModsView() {
+            const container = document.getElementById('right-mods-container');
+            container.innerHTML = '';
+            const uploadBtn = document.createElement('div');
+            uploadBtn.className = 'upload-mod-btn';
+            uploadBtn.innerHTML = '<div class="mod-info"><h3>📁 Subir Mod</h3><p>Carga un archivo .html con tu propia canción</p></div>';
+            uploadBtn.onclick = () => document.getElementById('mod-upload-input').click();
+            container.appendChild(uploadBtn);
+            
+            modsList.forEach((mod, idx) => {
+                const modItem = document.createElement('div');
+                modItem.className = 'mod-item enter';
+                modItem.style.animationDelay = `${idx * 0.05}s`;
+                modItem.innerHTML = `
+                    <div class="disc-wrap">
+                        <img src="img/icons/disco.gif" class="disc-gif">
+                    </div>
+                    <div class="mod-info">
+                        <h3>🎵 ${mod.name}</h3>
+                        <p>Mod • Click para jugar</p>
+                    </div>
+                `;
+                modItem.onclick = () => {
+                    localStorage.setItem('current_mod_content', mod.content);
+                    window.location.href = 'play.html';
+                };
+                container.appendChild(modItem);
+            });
+        }
+
+        function handleModUpload(event) {
+            const file = event.target.files[0];
+            if (file && file.name.endsWith('.html')) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const content = e.target.result;
+                    const titleMatch = content.match(/<title>(.*?)<\/title>/i);
+                    const modName = titleMatch ? titleMatch[1] : file.name.replace('.html', '');
+                    modsList.push({ name: modName, content: content });
+                    localStorage.setItem('okao_mods', JSON.stringify(modsList));
+                    showModsView();
+                };
+                reader.readAsText(file);
+            }
+            event.target.value = '';
         }
 
         function openModeSelector(index) {
@@ -1156,7 +1234,7 @@
         async function showProfileView() {
             document.querySelectorAll('.menu-bar').forEach(b => b.classList.remove('active'));
             document.getElementById('btn-perfil').classList.add('active');
-            const containers = ['right-song-container', 'right-settings-container', 'right-missions-container'];
+            const containers = ['right-song-container', 'right-settings-container', 'right-missions-container', 'right-mods-container'];
             for(let id of containers) {
                 const activeCont = document.getElementById(id);
                 if(activeCont.style.display !== 'none') {
@@ -1179,7 +1257,7 @@
         async function showMissionsView() {
             document.querySelectorAll('.menu-bar').forEach(b => b.classList.remove('active'));
             document.getElementById('btn-misiones').classList.add('active');
-            const containers = ['right-song-container', 'right-settings-container', 'right-profile-container'];
+            const containers = ['right-song-container', 'right-settings-container', 'right-profile-container', 'right-mods-container'];
             for(let id of containers) {
                 const activeCont = document.getElementById(id);
                 if(activeCont.style.display !== 'none') {
@@ -1195,10 +1273,29 @@
             initMissionsList();
         }
 
+        async function showModsView() {
+            document.querySelectorAll('.menu-bar').forEach(b => b.classList.remove('active'));
+            document.getElementById('btn-mods').classList.add('active');
+            const containers = ['right-song-container', 'right-settings-container', 'right-missions-container', 'right-profile-container'];
+            for(let id of containers) {
+                const activeCont = document.getElementById(id);
+                if(activeCont.style.display !== 'none') {
+                    const children = activeCont.children;
+                    for(let i = children.length - 1; i >= 0; i--) {
+                        children[i].classList.add('exit');
+                        await new Promise(r => setTimeout(r, 20));
+                    }
+                    activeCont.style.display = 'none';
+                }
+            }
+            document.getElementById('right-mods-container').style.display = 'flex';
+            initModsView();
+        }
+
         async function showSettingsView() {
             document.querySelectorAll('.menu-bar').forEach(b => b.classList.remove('active'));
             document.getElementById('btn-ajustes').classList.add('active');
-            const containers = ['right-song-container', 'right-missions-container', 'right-profile-container'];
+            const containers = ['right-song-container', 'right-missions-container', 'right-profile-container', 'right-mods-container'];
             for(let id of containers) {
                 const activeCont = document.getElementById(id);
                 if(activeCont.style.display !== 'none') {
@@ -1218,7 +1315,7 @@
         async function showMainView() {
             document.querySelectorAll('.menu-bar').forEach(b => b.classList.remove('active'));
             document.getElementById('btn-inicio').classList.add('active');
-            const containers = ['right-settings-container', 'right-missions-container', 'right-profile-container'];
+            const containers = ['right-settings-container', 'right-missions-container', 'right-profile-container', 'right-mods-container'];
             for(let id of containers) {
                 const activeCont = document.getElementById(id);
                 if(activeCont.style.display !== 'none') {
@@ -1374,7 +1471,14 @@
             }
             audio.src = songs[index].path;
             audio.load();
-            bgIframe.src = `https://www.youtube.com/embed/${songs[index].yt}?autoplay=1&controls=0&mute=1&loop=1&playlist=${songs[index].yt}&enablejsapi=1`;
+            const videoId = songs[index].yt;
+            if (videoId && videoId !== "") {
+                bgIframe.src = `https://www.youtube.com/embed/${videoId}?autoplay=1&controls=0&mute=1&loop=1&playlist=${videoId}&enablejsapi=1`;
+                videoContainer.style.display = 'block';
+            } else {
+                bgIframe.src = "";
+                videoContainer.style.display = 'none';
+            }
             document.getElementById('main-ui').style.opacity = '0';
             setTimeout(() => {
                 document.getElementById('main-ui').style.display = 'none';
@@ -1391,7 +1495,6 @@
             msg.textContent = "¡GO!"; await new Promise(r => setTimeout(r, 400));
             document.getElementById('intro-layer').style.display = 'none';
             document.getElementById('game-canvas').style.display = 'flex';
-            videoContainer.style.display = 'block';
             setTimeout(() => { document.getElementById('game-canvas').style.opacity = '1'; initGame(); }, 100);
         }
 
@@ -1401,7 +1504,9 @@
             audio.currentTime = 0;
             audio.playbackRate = 1.0;
             audio.play();
-            bgIframe.contentWindow.postMessage('{"event":"command","func":"playVideo","args":""}', '*');
+            if (songs[selectedSongIndex].yt && songs[selectedSongIndex].yt !== "") {
+                bgIframe.contentWindow.postMessage('{"event":"command","func":"playVideo","args":""}', '*');
+            }
 
             if (currentGameMode === 'recovery') {
                 health = 50;
@@ -1611,10 +1716,14 @@
             isPaused = !isPaused;
             if (isPaused) {
                 audio.pause();
-                bgIframe.contentWindow.postMessage('{"event":"command","func":"pauseVideo","args":""}', '*');
+                if (songs[selectedSongIndex].yt && songs[selectedSongIndex].yt !== "") {
+                    bgIframe.contentWindow.postMessage('{"event":"command","func":"pauseVideo","args":""}', '*');
+                }
             } else {
                 audio.play();
-                bgIframe.contentWindow.postMessage('{"event":"command","func":"playVideo","args":""}', '*');
+                if (songs[selectedSongIndex].yt && songs[selectedSongIndex].yt !== "") {
+                    bgIframe.contentWindow.postMessage('{"event":"command","func":"playVideo","args":""}', '*');
+                }
                 requestAnimationFrame(gameLoop);
             }
             const overlay = document.getElementById('overlay-game');
@@ -1638,7 +1747,9 @@
 
         function endGame(win) {
             isDead = true; analyzerActive = false; audio.pause();
-            bgIframe.contentWindow.postMessage('{"event":"command","func":"pauseVideo","args":""}', '*');
+            if (songs[selectedSongIndex].yt && songs[selectedSongIndex].yt !== "") {
+                bgIframe.contentWindow.postMessage('{"event":"command","func":"pauseVideo","args":""}', '*');
+            }
             const overlay = document.getElementById('overlay-game');
             overlay.style.display = 'flex';
             overlay.style.backgroundImage = "url('img/ft/f2.jpg')";
