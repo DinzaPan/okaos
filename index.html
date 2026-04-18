@@ -109,7 +109,7 @@
             width: 340px;
         }
 
-        #right-song-container, #right-settings-container, #right-missions-container, #right-profile-container {
+        #right-song-container, #right-settings-container, #right-missions-container, #right-profile-container, #right-mods-container {
             position: fixed;
             right: 0;
             display: flex;
@@ -125,9 +125,9 @@
             transition: 0.8s cubic-bezier(0.2, 1, 0.3, 1);
         }
 
-        #right-song-container::-webkit-scrollbar, #right-settings-container::-webkit-scrollbar, #right-missions-container::-webkit-scrollbar, #right-profile-container::-webkit-scrollbar { display: none; }
+        #right-song-container::-webkit-scrollbar, #right-settings-container::-webkit-scrollbar, #right-missions-container::-webkit-scrollbar, #right-profile-container::-webkit-scrollbar, #right-mods-container::-webkit-scrollbar { display: none; }
 
-        .song-bar, .setting-item, .mission-item, .profile-card {
+        .song-bar, .setting-item, .mission-item, .profile-card, .mod-item {
             background: rgba(255, 255, 255, 0.03);
             border: 1px solid var(--border);
             border-right: none;
@@ -141,6 +141,11 @@
             transition: 0.6s cubic-bezier(0.2, 1, 0.3, 1);
             backdrop-filter: blur(10px);
             position: relative;
+        }
+
+        .mod-item.active {
+            border-color: var(--boost);
+            background: rgba(0, 242, 255, 0.1);
         }
 
         .profile-card {
@@ -161,12 +166,12 @@
             background: rgba(46, 213, 115, 0.05);
         }
 
-        .song-bar.exit, .setting-item.exit, .mission-item.exit, .profile-card.exit {
+        .song-bar.exit, .setting-item.exit, .mission-item.exit, .profile-card.exit, .mod-item.exit {
             transform: translateX(120%) !important;
             opacity: 0;
         }
 
-        .song-bar.enter, .setting-item.enter, .mission-item.enter, .profile-card.enter {
+        .song-bar.enter, .setting-item.enter, .mission-item.enter, .profile-card.enter, .mod-item.enter {
             animation: bounceInRight 0.8s cubic-bezier(0.2, 1, 0.3, 1) forwards;
         }
 
@@ -186,7 +191,7 @@
         .boost-tag { background: var(--boost); box-shadow: 0 0 15px var(--boost); }
         .nerf-tag { background: var(--nerf); box-shadow: 0 0 15px var(--nerf); }
 
-        .song-bar:hover, .setting-item:hover, .mission-item:hover {
+        .song-bar:hover, .setting-item:hover, .mission-item:hover, .mod-item:hover {
             background: rgba(255, 255, 255, 0.1);
             width: 660px;
             border-color: rgba(255, 255, 255, 0.5);
@@ -210,9 +215,9 @@
             object-fit: cover;
         }
 
-        .song-info, .setting-info, .mission-info { text-align: right; width: 100%; }
-        .song-info h3, .setting-info h3, .mission-info h3 { font-size: 1.8rem; margin-bottom: 5px; }
-        .song-info p, .setting-info p, .mission-info p { font-size: 1.1rem; opacity: 0.7; }
+        .song-info, .setting-info, .mission-info, .mod-info { text-align: right; width: 100%; }
+        .song-info h3, .setting-info h3, .mission-info h3, .mod-info h3 { font-size: 1.8rem; margin-bottom: 5px; }
+        .song-info p, .setting-info p, .mission-info p, .mod-info p { font-size: 1.1rem; opacity: 0.7; }
 
         .key-config-grid {
             display: grid;
@@ -792,11 +797,13 @@
             <div id="btn-inicio" class="menu-bar active" style="animation-delay: 0.1s;" onclick="showMainView()">Inicio</div>
             <div id="btn-perfil" class="menu-bar" style="animation-delay: 0.2s;" onclick="showProfileView()">Perfil</div>
             <div id="btn-misiones" class="menu-bar" style="animation-delay: 0.3s;" onclick="showMissionsView()">Misiones</div>
+            <div id="btn-mods" class="menu-bar" style="animation-delay: 0.35s;" onclick="showModsView()">Modificadores</div>
             <div id="btn-ajustes" class="menu-bar" style="animation-delay: 0.4s;" onclick="showSettingsView()">Ajustes</div>
         </div>
         <div id="right-song-container"></div>
         <div id="right-missions-container" style="display: none;"></div>
         <div id="right-profile-container" style="display: none;"></div>
+        <div id="right-mods-container" style="display: none;"></div>
         <div id="right-settings-container" style="display: none;">
             <div class="setting-item enter">
                 <div class="setting-info">
@@ -950,10 +957,10 @@
             { id: 5, name: "Pañuelito Rojo", artist: "Big Metra", path: "music/bigmetra.mp3", duration: 216, diff: 110, speed: 1.5, bg: "img/fn/music6.webp", yt: "8lJ0_jS9SRA" },
             { id: 6, name: "Trato de no trabarme", artist: "Big Metra", path: "music/bigmetra2.mp3", duration: 228, diff: 75, death: true, speed: 1.3, bg: "img/fn/music7.webp", yt: "mUeWvL-8q5A" },
             { id: 7, name: "Puppet vs Tails Doll", artist: "Kronno Zomber", path: "music/puppet.mp3", duration: 285, diff: 130, speed: 2.1, bg: "img/fn/music8.webp", yt: "D0OofA5K0k4" },
-            { id: 8, name: "AiAiA", artist: "Ado", path: "music/aiaia.mp3", duration: 259, diff: 145, speed: 2.2, bg: "img/fn/music9.webp", yt: "_8CNByAq1n4" },
+            { id: 8, name: "AiAiA", artist: "Ado", path: "music/aiaia.mp3", duration: 259, diff: 145, speed: 2.2, bg: "img/fn/music9.webp", yt: "p_u8r0p8lG8" },
             { id: 9, name: "Given Up [Official Music Video]", artist: "Linkin Park", path: "music/givenup.mp3", duration: 191, diff: 120, speed: 2.3, bg: "img/fn/music10.webp", yt: "0xyxtzskW4A" },
             { id: 10, name: "17 Años", artist: "Los Ángeles Azules", path: "music/17años.mp3", duration: 181, diff: 140, speed: 1.7, bg: "img/fn/music11.webp", yt: "0Gf5A-6_zYw" },
-            { id: 11, name: "IGAKU/Medicine", artist: "Desconocido", path: "music/igakumedicine.mp3", duration: 123, diff: 160, speed: 1.6, bg: "img/fn/music12.webp", yt: "zXyOZvD1zU0" },
+            { id: 11, name: "IGAKU/Medicine", artist: "Desconocido", path: "music/igakumedicine.mp3", duration: 123, diff: 160, speed: 1.6, bg: "img/fn/music12.webp", yt: "mU-Xf9E7fP0" },
             { id: 12, name: "처형박수 (Execution Clap)", artist: "카사네 테토", path: "music/execution.mp3", duration: 194, diff: 155, speed: 1.8, bg: "img/fn/music13.webp", yt: "m6E27x-y6C0" },
             { id: 13, name: "505 (505 - Arctic Monkeys)", artist: "Arctic Monkeys", path: "music/505.mp3", duration: 254, diff: 150, speed: 1.8, bg: "img/fn/music14.webp", yt: "qU9mHegkTc4" }
         ];
@@ -1001,11 +1008,19 @@
             { id: 32, title: "Tratamiento de Oro", desc: "Logra 25,000 puntos en IGAKU/Medicine.", goal: { type: 'song_id_score', value: { id: 11, score: 25000 } } }
         ];
 
+        const modsData = [
+            { id: 'mirror', name: 'Mirror', desc: 'Invierte las flechas del carril.', multiplier: 1.05 },
+            { id: 'blind', name: 'Blind', desc: 'Las notas desaparecen a mitad del camino.', multiplier: 1.25 },
+            { id: 'hardcore', name: 'Hardcore', desc: 'Un solo fallo y se acaba la partida.', multiplier: 1.50 },
+            { id: 'speedup', name: 'Speed Up', desc: 'La velocidad aumenta gradualmente.', multiplier: 1.20 }
+        ];
+
         let gameKeys = ['a', 's', 'k', 'l'];
         let captureIndex = -1, selectedSongIndex = 0;
         let combo = 0, maxCombo = 0, score = 0, perfects = 0, misses = 0, lives = 3;
         let isPaused = false, isDead = false, analyzerActive = false, isPlaying = false;
         let activeNotes = [];
+        let activeMods = [];
         let audioCtx, analyzer, dataArray;
         let spawnCooldown = 220;
         let audioOffset = 0, trackOpacity = 0.02, flashIntensity = 30;
@@ -1023,6 +1038,44 @@
         let completedMissions = JSON.parse(localStorage.getItem('okao_missions') || '[]');
         let totalStats = JSON.parse(localStorage.getItem('okao_stats') || '{"score":0, "songs":0, "stars":0, "bestScore":0}');
         let userData = JSON.parse(localStorage.getItem('okao_user') || '{"name":"Usuario", "avatar":""}');
+
+        async function switchView(targetId, activeBtnId) {
+            document.querySelectorAll('.menu-bar').forEach(b => b.classList.remove('active'));
+            document.getElementById(activeBtnId).classList.add('active');
+            
+            const containers = ['right-song-container', 'right-settings-container', 'right-missions-container', 'right-profile-container', 'right-mods-container'];
+            for(let id of containers) {
+                const activeCont = document.getElementById(id);
+                if(activeCont.style.display !== 'none') {
+                    const children = activeCont.children;
+                    for(let i = children.length - 1; i >= 0; i--) {
+                        children[i].classList.add('exit');
+                        await new Promise(r => setTimeout(r, 20));
+                    }
+                    activeCont.style.display = 'none';
+                }
+            }
+            
+            const target = document.getElementById(targetId);
+            target.style.display = 'flex';
+            if (targetId === 'right-song-container') initSongList();
+            if (targetId === 'right-missions-container') initMissionsList();
+            if (targetId === 'right-profile-container') initProfileView();
+            if (targetId === 'right-mods-container') initModsView();
+            
+            if (targetId !== 'right-song-container') {
+                audio.pause();
+                audio.currentTime = 0;
+                isPlaying = false;
+                document.getElementById('bg-overlay').classList.remove('active');
+            }
+        }
+
+        function showMainView() { switchView('right-song-container', 'btn-inicio'); }
+        function showProfileView() { switchView('right-profile-container', 'btn-perfil'); }
+        function showMissionsView() { switchView('right-missions-container', 'btn-misiones'); }
+        function showModsView() { switchView('right-mods-container', 'btn-mods'); }
+        function showSettingsView() { switchView('right-settings-container', 'btn-ajustes'); }
 
         function initSongList() {
             const container = document.getElementById('right-song-container');
@@ -1066,6 +1119,37 @@
                 `;
                 container.appendChild(bar);
             });
+        }
+
+        function initModsView() {
+            const container = document.getElementById('right-mods-container');
+            container.innerHTML = '';
+            modsData.forEach((m, i) => {
+                const isActive = activeMods.includes(m.id);
+                const item = document.createElement('div');
+                item.className = `mod-item enter ${isActive ? 'active' : ''}`;
+                item.style.animationDelay = `${i * 0.05}s`;
+                item.onclick = () => toggleMod(m.id);
+                item.innerHTML = `
+                    <div class="disc-wrap">
+                        <img src="img/icons/disco2.gif" class="disc-gif" style="filter: ${isActive ? 'hue-rotate(180deg)' : 'grayscale(1)'}">
+                    </div>
+                    <div class="mod-info">
+                        <h3>${m.name} [x${m.multiplier}]</h3>
+                        <p>${m.desc}</p>
+                    </div>
+                `;
+                container.appendChild(item);
+            });
+        }
+
+        function toggleMod(modId) {
+            if (activeMods.includes(modId)) {
+                activeMods = activeMods.filter(id => id !== modId);
+            } else {
+                activeMods.push(modId);
+            }
+            initModsView();
         }
 
         function openModeSelector(index) {
@@ -1132,9 +1216,7 @@
             container.appendChild(card);
         }
 
-        function updateUserName(name) {
-            userData.name = name;
-        }
+        function updateUserName(name) { userData.name = name; }
 
         function handleAvatarChange(e) {
             const file = e.target.files[0];
@@ -1151,87 +1233,6 @@
         function saveProfileChanges() {
             localStorage.setItem('okao_user', JSON.stringify(userData));
             notifyMission();
-        }
-
-        async function showProfileView() {
-            document.querySelectorAll('.menu-bar').forEach(b => b.classList.remove('active'));
-            document.getElementById('btn-perfil').classList.add('active');
-            const containers = ['right-song-container', 'right-settings-container', 'right-missions-container'];
-            for(let id of containers) {
-                const activeCont = document.getElementById(id);
-                if(activeCont.style.display !== 'none') {
-                    const children = activeCont.children;
-                    for(let i = children.length - 1; i >= 0; i--) {
-                        children[i].classList.add('exit');
-                        await new Promise(r => setTimeout(r, 20));
-                    }
-                    activeCont.style.display = 'none';
-                }
-            }
-            document.getElementById('right-profile-container').style.display = 'flex';
-            initProfileView();
-            audio.pause();
-            audio.currentTime = 0;
-            isPlaying = false;
-            document.getElementById('bg-overlay').classList.remove('active');
-        }
-
-        async function showMissionsView() {
-            document.querySelectorAll('.menu-bar').forEach(b => b.classList.remove('active'));
-            document.getElementById('btn-misiones').classList.add('active');
-            const containers = ['right-song-container', 'right-settings-container', 'right-profile-container'];
-            for(let id of containers) {
-                const activeCont = document.getElementById(id);
-                if(activeCont.style.display !== 'none') {
-                    const children = activeCont.children;
-                    for(let i = children.length - 1; i >= 0; i--) {
-                        children[i].classList.add('exit');
-                        await new Promise(r => setTimeout(r, 20));
-                    }
-                    activeCont.style.display = 'none';
-                }
-            }
-            document.getElementById('right-missions-container').style.display = 'flex';
-            initMissionsList();
-        }
-
-        async function showSettingsView() {
-            document.querySelectorAll('.menu-bar').forEach(b => b.classList.remove('active'));
-            document.getElementById('btn-ajustes').classList.add('active');
-            const containers = ['right-song-container', 'right-missions-container', 'right-profile-container'];
-            for(let id of containers) {
-                const activeCont = document.getElementById(id);
-                if(activeCont.style.display !== 'none') {
-                    const children = activeCont.children;
-                    for(let i = children.length - 1; i >= 0; i--) {
-                        children[i].classList.add('exit');
-                        await new Promise(r => setTimeout(r, 20));
-                    }
-                    activeCont.style.display = 'none';
-                }
-            }
-            document.getElementById('right-settings-container').style.display = 'flex';
-            const settings = document.querySelectorAll('.setting-item');
-            settings.forEach(s => s.classList.remove('exit'));
-        }
-
-        async function showMainView() {
-            document.querySelectorAll('.menu-bar').forEach(b => b.classList.remove('active'));
-            document.getElementById('btn-inicio').classList.add('active');
-            const containers = ['right-settings-container', 'right-missions-container', 'right-profile-container'];
-            for(let id of containers) {
-                const activeCont = document.getElementById(id);
-                if(activeCont.style.display !== 'none') {
-                    const children = activeCont.children;
-                    for(let i = children.length - 1; i >= 0; i--) {
-                        children[i].classList.add('exit');
-                        await new Promise(r => setTimeout(r, 20));
-                    }
-                    activeCont.style.display = 'none';
-                }
-            }
-            document.getElementById('right-song-container').style.display = 'flex';
-            initSongList();
         }
 
         function notifyMission() {
@@ -1428,7 +1429,11 @@
             for(let i=30; i<60; i++) treble += dataArray[i];
             bass /= 4; lowMid /= 8; mid /= 18; treble /= 30;
             let currentEnergy = (bass + lowMid + mid + treble) / 4;
-            dynamicSpeed = 0.8 + (currentEnergy / 255) * 1.2;
+            
+            let baseSpeed = 0.8;
+            if (activeMods.includes('speedup')) baseSpeed = 0.8 + (audio.currentTime / audio.duration) * 0.5;
+            dynamicSpeed = baseSpeed + (currentEnergy / 255) * 1.2;
+
             const now = Date.now() + audioOffset;
             const song = songs[selectedSongIndex];
             let dynamicCooldown = (spawnCooldown + (song.diff * 0.5)) / (0.6 + (currentEnergy / 100));
@@ -1482,6 +1487,10 @@
                 let speedFactor = song.speed * 8.5 * dynamicSpeed;
                 n.el.style.top = (currentY + speedFactor) + 'px';
 
+                if (activeMods.includes('blind') && currentY > hitZone - 200) {
+                    n.el.style.opacity = Math.max(0, 1 - (currentY - (hitZone - 200)) / 100);
+                }
+
                 if (currentGameMode === 'auto' && currentY > hitZone - 20 && !n.hit) {
                     handleInput(n.lane);
                 }
@@ -1497,7 +1506,8 @@
                             combo = 0;
                             document.getElementById('combo-text').textContent = "0";
                         } else {
-                            loseLife();
+                            if (activeMods.includes('hardcore')) endGame(false);
+                            else loseLife();
                         }
                     }
                 }
@@ -1509,15 +1519,21 @@
             const id = Math.random();
             const el = document.createElement('div');
             el.className = 'note';
-            el.dataset.lane = lane;
-            el.innerHTML = arrowSvgs[lane];
-            const slot = document.getElementById(`s${lane}`);
+            
+            let finalLane = lane;
+            if (activeMods.includes('mirror')) {
+                finalLane = 3 - lane;
+            }
+            
+            el.dataset.lane = finalLane;
+            el.innerHTML = arrowSvgs[finalLane];
+            const slot = document.getElementById(`s${finalLane}`);
             const trackRect = document.getElementById('track').getBoundingClientRect();
             const slotRect = slot.getBoundingClientRect();
             el.style.left = (slotRect.left - trackRect.left) + 'px';
             el.style.top = '-100px';
             document.getElementById('track').appendChild(el);
-            activeNotes.push({ id, el, lane, hit: false });
+            activeNotes.push({ id, el, lane: finalLane, hit: false });
         }
 
         function handleInput(lane) {
@@ -1536,27 +1552,27 @@
                 note.hit = true;
                 note.el.remove();
                 
+                let modMult = 1;
+                activeMods.forEach(mId => {
+                    const m = modsData.find(x => x.id === mId);
+                    if (m) modMult *= m.multiplier;
+                });
+
                 if (currentGameMode === 'recovery') {
-                    if (dist < 50) { 
-                        modifyHealth(3); 
-                        updateStatus('PERFECT', '#00ffcc');
-                        perfects++;
-                    } else { 
-                        modifyHealth(1); 
-                        updateStatus('GREAT', '#eab000');
-                    }
+                    if (dist < 50) { modifyHealth(3); updateStatus('PERFECT', '#00ffcc'); perfects++; }
+                    else { modifyHealth(1); updateStatus('GREAT', '#eab000'); }
                     combo++;
                 } else if (currentGameMode === 'auto') {
                     updateStatus('AUTO', '#fff');
                     combo++;
                 } else {
                     if (dist < 50) { 
-                        score += (100 * (1 + combo * 0.02)); 
+                        score += (100 * (1 + combo * 0.02)) * modMult; 
                         combo++; 
                         perfects++; 
                         updateStatus('PERFECT', '#00ffcc'); 
                     } else { 
-                        score += (50 * (1 + combo * 0.01)); 
+                        score += (50 * (1 + combo * 0.01)) * modMult; 
                         combo++; 
                         updateStatus('GREAT', '#eab000'); 
                     }
@@ -1572,7 +1588,8 @@
                     combo = 0;
                     document.getElementById('combo-text').textContent = "0";
                 } else if (currentGameMode !== 'auto') {
-                    loseLife();
+                    if (activeMods.includes('hardcore')) endGame(false);
+                    else loseLife();
                 }
             }
         }
@@ -1584,9 +1601,7 @@
             updateHealthUI();
         }
 
-        function updateHealthUI() {
-            document.getElementById('health-fill').style.height = health + '%';
-        }
+        function updateHealthUI() { document.getElementById('health-fill').style.height = health + '%'; }
 
         function loseLife() {
             lives--; misses++; combo = 0;
@@ -1651,11 +1666,7 @@
             
             if (currentGameMode === 'auto' || currentGameMode === 'recovery') {
                 document.getElementById('res-score').textContent = "N/A";
-                if (win) {
-                    stars[0].classList.add('active');
-                    stars[1].classList.add('active');
-                    stars[2].classList.add('active');
-                }
+                if (win) { stars[0].classList.add('active'); stars[1].classList.add('active'); stars[2].classList.add('active'); }
             } else {
                 if(win) {
                     stars[0].classList.add('active');
@@ -1697,4 +1708,4 @@
         initSongList();
     </script>
 </body>
-    </html>
+</html>
