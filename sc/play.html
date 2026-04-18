@@ -3,179 +3,105 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Missions - Ejecución</title>
+    <title>Missions - Execution</title>
     <style>
-        :root {
-            --bg-color: #0f172a;
-            --glass-bg: rgba(30, 41, 59, 0.7);
-            --accent-color: #38bdf8;
-            --text-color: #f8fafc;
-            --border-color: rgba(255, 255, 255, 0.1);
-        }
-
-        body {
+        body, html {
             margin: 0;
             padding: 0;
-            font-family: 'Segoe UI', sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text-color);
+            width: 100%;
+            height: 100%;
             overflow: hidden;
-            display: flex;
-            flex-direction: column;
-            height: 100vh;
-        }
-
-        header {
-            background: var(--glass-bg);
-            backdrop-filter: blur(10px);
-            border-bottom: 1px solid var(--border-color);
-            padding: 10px 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            z-index: 100;
-        }
-
-        .logo {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            font-weight: bold;
-            font-size: 1.2rem;
-            color: var(--accent-color);
-        }
-
-        .controls {
-            display: flex;
-            gap: 15px;
-        }
-
-        .btn-icon {
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            padding: 8px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .btn-icon:hover {
-            background: var(--accent-color);
-            border-color: var(--accent-color);
-        }
-
-        .btn-icon svg {
-            width: 20px;
-            height: 20px;
-            fill: white;
-        }
-
-        #game-container {
-            flex-grow: 1;
-            position: relative;
-            background: #000;
-            display: flex;
-            justify-content: center;
-            align-items: center;
+            background-color: #000;
         }
 
         #game-frame {
             width: 100%;
             height: 100%;
             border: none;
+            display: block;
         }
 
         #loader {
-            position: absolute;
+            position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background: var(--bg-color);
+            background-color: #0f172a;
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            transition: opacity 0.5s ease;
+            z-index: 9999;
+            transition: opacity 0.5s ease, visibility 0.5s ease;
         }
 
         .spinner {
             width: 50px;
             height: 50px;
             border: 5px solid rgba(255, 255, 255, 0.1);
-            border-top: 5px solid var(--accent-color);
+            border-top: 5px solid #38bdf8;
             border-radius: 50%;
             animation: spin 1s linear infinite;
+        }
+
+        .loader-text {
+            margin-top: 20px;
+            color: #f8fafc;
+            font-family: sans-serif;
+            font-size: 14px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
         }
 
         @keyframes spin {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
+
+        .hide-loader {
+            opacity: 0;
+            visibility: hidden;
+        }
     </style>
 </head>
 <body>
 
-    <header>
-        <div class="logo">
-            <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor">
-                <path d="M13,2V11H21V2H13M13,13V22H21V13H13M11,2H3V11H11V2M11,13H3V22H11V13Z" />
-            </svg>
-            <span>Missions Play</span>
-        </div>
-        <div class="controls">
-            <button class="btn-icon" onclick="reloadGame()">
-                <svg viewBox="0 0 24 24"><path d="M17.65,6.35C16.2,4.9 14.21,4 12,4A8,8 0 0,0 4,12A8,8 0 0,0 12,20C15.73,20 18.84,17.45 19.73,14H17.65C16.83,16.33 14.61,18 12,18A6,6 0 0,1 6,12A6,6 0 0,1 12,6C13.66,6 15.14,6.69 16.22,7.78L13,11H20V4L17.65,6.35Z" /></svg>
-            </button>
-            <button class="btn-icon" onclick="toggleFullscreen()">
-                <svg viewBox="0 0 24 24"><path d="M5,5H10V7H7V10H5V5M14,5H19V10H17V7H14V5M17,14H19V19H14V17H17V14M10,17V19H5V14H7V17H10Z" /></svg>
-            </button>
-            <button class="btn-icon" onclick="window.location.href='index.html'">
-                <svg viewBox="0 0 24 24"><path d="M19,3H5C3.89,3 3,3.89 3,5V9H5V5H19V19H5V15H3V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V5C21,3.89 20.1,3 19,3M10.08,15.58L11.5,17L16.5,12L11.5,7L10.08,8.41L12.67,11H3V13H12.67L10.08,15.58Z" /></svg>
-            </button>
-        </div>
-    </header>
+    <div id="loader">
+        <div class="spinner"></div>
+        <div class="loader-text">Ejecutando</div>
+    </div>
 
-    <main id="game-container">
-        <div id="loader">
-            <div class="spinner"></div>
-            <p style="margin-top: 20px; letter-spacing: 2px;">CARGANDO ENTORNO...</p>
-        </div>
-        <iframe id="game-frame" src="about:blank"></iframe>
-    </main>
+    <iframe id="game-frame" src="about:blank"></iframe>
 
     <script>
         const frame = document.getElementById('game-frame');
         const loader = document.getElementById('loader');
 
-        function initPlay() {
-            setTimeout(() => {
-                loader.style.opacity = '0';
-                setTimeout(() => loader.style.display = 'none', 500);
-            }, 1500);
+        function getQueryParam(param) {
+            const urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get(param);
         }
 
-        function reloadGame() {
-            loader.style.display = 'flex';
-            loader.style.opacity = '1';
-            frame.contentWindow.location.reload();
-            initPlay();
-        }
-
-        function toggleFullscreen() {
-            if (!document.fullscreenElement) {
-                document.documentElement.requestFullscreen();
-            } else {
-                if (document.exitFullscreen) {
-                    document.exitFullscreen();
-                }
+        function init() {
+            const modUrl = getQueryParam('url');
+            
+            if (modUrl) {
+                frame.src = modUrl;
             }
+
+            frame.onload = function() {
+                loader.classList.add('hide-loader');
+            };
+
+            setTimeout(() => {
+                if (!loader.classList.contains('hide-loader')) {
+                    loader.classList.add('hide-loader');
+                }
+            }, 5000);
         }
 
-        window.onload = initPlay;
+        window.onload = init;
     </script>
 </body>
 </html>
