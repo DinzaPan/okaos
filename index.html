@@ -143,10 +143,6 @@
             position: relative;
         }
 
-        .mod-item {
-            cursor: pointer;
-        }
-
         .profile-card {
             cursor: default;
             flex-direction: column;
@@ -782,29 +778,10 @@
             text-transform: uppercase;
         }
 
-        #mod-upload-input {
-            display: none;
-        }
-
-        .upload-mod-btn {
-            background: linear-gradient(90deg, var(--glass) 0%, rgba(255,255,255,0) 100%);
-            border: 1px solid var(--border);
-            border-right: none;
-            padding: 25px 40px;
-            width: 580px;
-            border-radius: 80px 0 0 80px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            backdrop-filter: blur(10px);
-            margin-bottom: 20px;
-        }
-
-        .upload-mod-btn:hover {
-            background: var(--accent);
-            color: #000;
-            width: 660px;
+        .mod-play-icon {
+            width: 40px;
+            height: 40px;
+            fill: #fff;
         }
     </style>
 </head>
@@ -822,6 +799,7 @@
             <div id="btn-misiones" class="menu-bar" style="animation-delay: 0.3s;" onclick="showMissionsView()">Misiones</div>
             <div id="btn-mods" class="menu-bar" style="animation-delay: 0.35s;" onclick="showModsView()">Mods</div>
             <div id="btn-ajustes" class="menu-bar" style="animation-delay: 0.4s;" onclick="showSettingsView()">Ajustes</div>
+            <div class="menu-bar" style="margin-top:20px; animation-delay: 0.5s;" onclick="document.getElementById('mod-upload').click()">Subir Mod</div>
         </div>
         <div id="right-song-container"></div>
         <div id="right-missions-container" style="display: none;"></div>
@@ -890,7 +868,7 @@
     </div>
 
     <input type="file" id="avatar-upload" accept="image/*" style="display: none;" onchange="handleAvatarChange(event)">
-    <input type="file" id="mod-upload-input" accept=".html" style="display: none;" onchange="handleModUpload(event)">
+    <input type="file" id="mod-upload" accept=".html" style="display: none;" onchange="handleModUpload(event)">
 
     <div id="mode-selector">
         <h2 class="mode-title">Selecciona Modo</h2>
@@ -973,19 +951,20 @@
 
     <script>
         const songs = [
-            { id: 0, name: "Puertas", artist: "El Cuarteto de Nos", path: "music/puertas.mp3", duration: 228, diff: 180, speed: 2.5, bg: "img/fn/music1.webp", yt: "" },
-            { id: 1, name: "ART OF GUITAR", artist: "Marcin, RJ Pasin", path: "music/marcin.mp3", duration: 143, diff: 185, speed: 1.5, nerfed: true, bg: "img/fn/music2.webp", yt: "iHlfdyLMHOo" },
-            { id: 2, name: "Everything Black", artist: "Unlike Pluto", path: "music/unlike.mp3", duration: 229, diff: 180, speed: 2.2, bg: "img/fn/music3.webp", yt: "mWKDZRJWdF4" },
-            { id: 3, name: "Chop Suey!", artist: "System Of A Down", path: "music/system.mp3", duration: 208, diff: 170, speed: 1.6, bg: "img/fn/music4.webp", yt: "CSvFpBOe8eY" },
-            { id: 4, name: "Adoウタカタララバイ", artist: "Ado", path: "music/onepiece.mp3", duration: 193, diff: 135, speed: 2.0, bg: "img/fn/music5.webp", yt: "hyV1AJiFNyo" },
-            { id: 5, name: "Pañuelito Rojo", artist: "Big Metra", path: "music/bigmetra.mp3", duration: 216, diff: 110, speed: 1.5, bg: "img/fn/music6.webp", yt: "" },
-            { id: 6, name: "Trato de no trabarme", artist: "Big Metra", path: "music/bigmetra2.mp3", duration: 228, diff: 75, death: true, speed: 1.3, bg: "img/fn/music7.webp", yt: "" },
-            { id: 7, name: "Puppet vs Tails Doll", artist: "Kronno Zomber", path: "music/puppet.mp3", duration: 285, diff: 130, speed: 2.1, bg: "img/fn/music8.webp", yt: "" },
-            { id: 8, name: "Given Up", artist: "Linkin Park", path: "music/givenup.mp3", duration: 191, diff: 120, speed: 2.3, bg: "img/fn/music10.webp", yt: "" },
-            { id: 9, name: "17 Años", artist: "Los Ángeles Azules", path: "music/17años.mp3", duration: 181, diff: 140, speed: 1.7, bg: "img/fn/music11.webp", yt: "" },
-            { id: 10, name: "505", artist: "Arctic Monkeys", path: "music/505.mp3", duration: 254, diff: 150, speed: 1.8, bg: "img/fn/music14.webp", yt: "" },
-            { id: 11, name: "IGAKU/Medicine", artist: "Desconocido", path: "music/igakumedicine.mp3", duration: 123, diff: 160, speed: 1.6, bg: "img/fn/music12.webp", yt: "" },
-            { id: 12, name: "처형박수 (Execution Clap)", artist: "카사네 테토", path: "music/execution.mp3", duration: 194, diff: 155, speed: 1.8, bg: "img/fn/music13.webp", yt: "YcxhmHEykPg" }
+            { id: 0, name: "Puertas", artist: "El Cuarteto de Nos", path: "music/puertas.mp3", duration: 228, diff: 180, speed: 2.5, bg: "img/fn/music1.webp", yt: null },
+            { id: 1, name: "ART OF GUITAR", artist: "Marcin, RJ Pasin", path: "music/marcin.mp3", duration: 143, diff: 185, speed: 1.5, nerfed: true, bg: "img/fn/music2.webp", yt: "https://youtu.be/iHlfdyLMHOo?si=gX-G1gGfTj1fTHsA" },
+            { id: 2, name: "Everything Black", artist: "Unlike Pluto", path: "music/unlike.mp3", duration: 229, diff: 180, speed: 2.2, bg: "img/fn/music3.webp", yt: "https://youtu.be/mWKDZRJWdF4?si=rwBHkI98nyl8EX-f" },
+            { id: 3, name: "Chop Suey!", artist: "System Of A To Down", path: "music/system.mp3", duration: 208, diff: 170, speed: 1.6, bg: "img/fn/music4.webp", yt: "https://youtu.be/CSvFpBOe8eY?si=AF5zEPOV1ZBI0mkr" },
+            { id: 4, name: "Adoウ타카타라라바이", artist: "Ado", path: "music/onepiece.mp3", duration: 193, diff: 135, speed: 2.0, bg: "img/fn/music5.webp", yt: "https://youtu.be/hyV1AJiFNyo?si=zSmw6rJrTE0BKZe5" },
+            { id: 5, name: "Pañuelito Rojo", artist: "Big Metra", path: "music/bigmetra.mp3", duration: 216, diff: 110, speed: 1.5, bg: "img/fn/music6.webp", yt: null },
+            { id: 6, name: "Trato de no trabarme", artist: "Big Metra", path: "music/bigmetra2.mp3", duration: 228, diff: 75, death: true, speed: 1.3, bg: "img/fn/music7.webp", yt: null },
+            { id: 7, name: "Puppet vs Tails Doll", artist: "Kronno Zomber", path: "music/puppet.mp3", duration: 285, diff: 130, speed: 2.1, bg: "img/fn/music8.webp", yt: null },
+            { id: 8, name: "AiAiA", artist: "Ado", path: "music/aiaia.mp3", duration: 259, diff: 145, speed: 2.2, bg: "img/fn/music9.webp", yt: null },
+            { id: 9, name: "Given Up [Official Music Video]", artist: "Linkin Park", path: "music/givenup.mp3", duration: 191, diff: 120, speed: 2.3, bg: "img/fn/music10.webp", yt: null },
+            { id: 10, name: "17 Años", artist: "Los Ángeles Azules", path: "music/17años.mp3", duration: 181, diff: 140, speed: 1.7, bg: "img/fn/music11.webp", yt: null },
+            { id: 11, name: "IGAKU/Medicine", artist: "Desconocido", path: "music/igakumedicine.mp3", duration: 123, diff: 160, speed: 1.6, bg: "img/fn/music12.webp", yt: null },
+            { id: 12, name: "처형박수 (Execution Clap)", artist: "카사네 테토", path: "music/execution.mp3", duration: 194, diff: 155, speed: 1.8, bg: "img/fn/music13.webp", yt: "https://youtu.be/YcxhmHEykPg?si=gEEMFAUBkHlNx5W7" },
+            { id: 13, name: "505 (505 - Arctic Monkeys)", artist: "Arctic Monkeys", path: "music/505.mp3", duration: 254, diff: 150, speed: 1.8, bg: "img/fn/music14.webp", yt: null }
         ];
 
         const arrowSvgs = [
@@ -1010,25 +989,7 @@
             { id: 11, title: "Puntuación de Oro", desc: "Llega a 10,000 puntos en una canción.", goal: { type: 'score', value: 10000 } },
             { id: 12, title: "Rey del Ritmo", desc: "Consigue un combo de 200.", goal: { type: 'combo', value: 200 } },
             { id: 13, title: "Intocable", desc: "Gana con 3 vidas restantes.", goal: { type: 'lives', value: 3 } },
-            { id: 14, title: "Leyenda OKAOs", desc: "Consigue 3 estrellas en cualquier nivel.", goal: { type: 'stars', value: 3 } },
-            { id: 15, title: "Millonario del Ritmo", desc: "Acumula un total histórico de 1,000,000 de puntos.", goal: { type: 'total_score', value: 1000000 } },
-            { id: 16, title: "Combo Divino", desc: "Alcanza un combo de 500.", goal: { type: 'combo', value: 500 } },
-            { id: 17, title: "Puntaje Épico", desc: "Consigue 50,000 puntos en un solo tema.", goal: { type: 'score', value: 50000 } },
-            { id: 18, title: "Maestro Perfecto", desc: "Consigue 300 Perfects en una sola partida.", goal: { type: 'perfects', value: 300 } },
-            { id: 19, title: "Resistencia Extrema", desc: "Completa un nivel Legend con 1 de vida.", goal: { type: 'death_win', value: 1 } },
-            { id: 20, title: "Mago de los Dedos", desc: "Completa 10 canciones en total.", goal: { type: 'songs_completed', value: 10 } },
-            { id: 21, title: "Puntaje Galáctico", desc: "Consigue 100,000 puntos en una canción.", goal: { type: 'score', value: 100000 } },
-            { id: 22, title: "Combo Infinito", desc: "Alcanza un combo de 1,000.", goal: { type: 'combo', value: 1000 } },
-            { id: 23, title: "Precisión de Cirujano", desc: "Termina una canción con más del 98% de Perfects.", goal: { type: 'ratio_perfect', value: 0.98 } },
-            { id: 24, title: "Veterano del Beat", desc: "Juega durante un total de 1 hora.", goal: { type: 'time_played', value: 3600 } },
-            { id: 25, title: "Imparable", desc: "Consigue 5 victorias consecutivas sin morir.", goal: { type: 'streak', value: 5 } },
-            { id: 26, title: "Coleccionista de Estrellas", desc: "Consigue 3 estrellas en 5 canciones diferentes.", goal: { type: 'total_stars', value: 15 } },
-            { id: 27, title: "Velocidad de la Luz", desc: "Completa una canción con velocidad mayor a 2.0.", goal: { type: 'speed_win', value: 2.0 } },
-            { id: 28, title: "Berserker", desc: "Obtén 20,000 puntos en menos de 1 minuto.", goal: { type: 'fast_score', value: 20000 } },
-            { id: 29, title: "Dios del Rhythm Engine", desc: "Completa todas las canciones disponibles.", goal: { type: 'all_songs', value: 1 } },
-            { id: 30, title: "Paciente Cero", desc: "Completa IGAKU/Medicine por primera vez.", goal: { type: 'song_id_win', value: 11 } },
-            { id: 31, title: "Dosis Perfecta", desc: "Consigue 150 Perfects en IGAKU/Medicine.", goal: { type: 'song_id_perfects', value: { id: 11, count: 150 } } },
-            { id: 32, title: "Tratamiento de Oro", desc: "Logra 25,000 puntos en IGAKU/Medicine.", goal: { type: 'song_id_score', value: { id: 11, score: 25000 } } }
+            { id: 14, title: "Leyenda OKAOs", desc: "Consigue 3 estrellas en cualquier nivel.", goal: { type: 'stars', value: 3 } }
         ];
 
         let gameKeys = ['a', 's', 'k', 'l'];
@@ -1053,7 +1014,7 @@
         let completedMissions = JSON.parse(localStorage.getItem('okao_missions') || '[]');
         let totalStats = JSON.parse(localStorage.getItem('okao_stats') || '{"score":0, "songs":0, "stars":0, "bestScore":0}');
         let userData = JSON.parse(localStorage.getItem('okao_user') || '{"name":"Usuario", "avatar":""}');
-        let modsList = JSON.parse(localStorage.getItem('okao_mods') || '[]');
+        let loadedMods = JSON.parse(localStorage.getItem('okao_mods') || '[]');
 
         function initSongList() {
             const container = document.getElementById('right-song-container');
@@ -1099,51 +1060,66 @@
             });
         }
 
-        function initModsView() {
-            const container = document.getElementById('right-mods-container');
-            container.innerHTML = '';
-            const uploadBtn = document.createElement('div');
-            uploadBtn.className = 'upload-mod-btn';
-            uploadBtn.innerHTML = '<div class="mod-info"><h3>📁 Subir Mod</h3><p>Carga un archivo .html con tu propia canción</p></div>';
-            uploadBtn.onclick = () => document.getElementById('mod-upload-input').click();
-            container.appendChild(uploadBtn);
-            
-            modsList.forEach((mod, idx) => {
-                const modItem = document.createElement('div');
-                modItem.className = 'mod-item enter';
-                modItem.style.animationDelay = `${idx * 0.05}s`;
-                modItem.innerHTML = `
-                    <div class="disc-wrap">
-                        <img src="img/icons/disco.gif" class="disc-gif">
-                    </div>
-                    <div class="mod-info">
-                        <h3>🎵 ${mod.name}</h3>
-                        <p>Mod • Click para jugar</p>
-                    </div>
-                `;
-                modItem.onclick = () => {
-                    localStorage.setItem('current_mod_content', mod.content);
-                    window.location.href = 'play.html';
-                };
-                container.appendChild(modItem);
-            });
-        }
-
-        function handleModUpload(event) {
-            const file = event.target.files[0];
+        function handleModUpload(e) {
+            const file = e.target.files[0];
             if (file && file.name.endsWith('.html')) {
                 const reader = new FileReader();
-                reader.onload = (e) => {
-                    const content = e.target.result;
-                    const titleMatch = content.match(/<title>(.*?)<\/title>/i);
-                    const modName = titleMatch ? titleMatch[1] : file.name.replace('.html', '');
-                    modsList.push({ name: modName, content: content });
-                    localStorage.setItem('okao_mods', JSON.stringify(modsList));
-                    showModsView();
+                reader.onload = (event) => {
+                    const content = event.target.result;
+                    const parser = new DOMParser();
+                    const doc = parser.parseFromString(content, 'text/html');
+                    const modName = doc.title || "Nuevo Mod";
+                    const newMod = { name: modName, code: content };
+                    loadedMods.push(newMod);
+                    localStorage.setItem('okao_mods', JSON.stringify(loadedMods));
+                    notifyMission();
+                    if(document.getElementById('right-mods-container').style.display !== 'none') initModsList();
                 };
                 reader.readAsText(file);
             }
-            event.target.value = '';
+        }
+
+        function initModsList() {
+            const container = document.getElementById('right-mods-container');
+            container.innerHTML = '';
+            loadedMods.forEach((mod, i) => {
+                const item = document.createElement('div');
+                item.className = 'mod-item enter';
+                item.style.animationDelay = `${i * 0.05}s`;
+                item.onclick = () => {
+                    localStorage.setItem('okao_mod_to_play', mod.code);
+                    window.location.href = 'sc/play.html';
+                };
+                item.innerHTML = `
+                    <div class="disc-wrap">
+                        <svg class="mod-play-icon" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                    </div>
+                    <div class="mod-info">
+                        <h3>${mod.name}</h3>
+                        <p>Contenido Externo</p>
+                    </div>
+                `;
+                container.appendChild(item);
+            });
+        }
+
+        async function showModsView() {
+            document.querySelectorAll('.menu-bar').forEach(b => b.classList.remove('active'));
+            document.getElementById('btn-mods').classList.add('active');
+            const containers = ['right-song-container', 'right-settings-container', 'right-missions-container', 'right-profile-container'];
+            for(let id of containers) {
+                const activeCont = document.getElementById(id);
+                if(activeCont.style.display !== 'none') {
+                    const children = activeCont.children;
+                    for(let i = children.length - 1; i >= 0; i--) {
+                        children[i].classList.add('exit');
+                        await new Promise(r => setTimeout(r, 20));
+                    }
+                    activeCont.style.display = 'none';
+                }
+            }
+            document.getElementById('right-mods-container').style.display = 'flex';
+            initModsList();
         }
 
         function openModeSelector(index) {
@@ -1273,25 +1249,6 @@
             initMissionsList();
         }
 
-        async function showModsView() {
-            document.querySelectorAll('.menu-bar').forEach(b => b.classList.remove('active'));
-            document.getElementById('btn-mods').classList.add('active');
-            const containers = ['right-song-container', 'right-settings-container', 'right-missions-container', 'right-profile-container'];
-            for(let id of containers) {
-                const activeCont = document.getElementById(id);
-                if(activeCont.style.display !== 'none') {
-                    const children = activeCont.children;
-                    for(let i = children.length - 1; i >= 0; i--) {
-                        children[i].classList.add('exit');
-                        await new Promise(r => setTimeout(r, 20));
-                    }
-                    activeCont.style.display = 'none';
-                }
-            }
-            document.getElementById('right-mods-container').style.display = 'flex';
-            initModsView();
-        }
-
         async function showSettingsView() {
             document.querySelectorAll('.menu-bar').forEach(b => b.classList.remove('active'));
             document.getElementById('btn-ajustes').classList.add('active');
@@ -1342,42 +1299,16 @@
         function checkMissions(win) {
             if (!isPlaying || currentGameMode === 'auto' || currentGameMode === 'recovery') return;
             let newlyCompleted = false;
-            const currentSong = songs[selectedSongIndex];
-            
-            if (win) {
-                totalStats.score += score;
-                totalStats.songs += 1;
-                if(score > totalStats.bestScore) totalStats.bestScore = score;
-                let earnedStars = 1 + (lives >= 2 ? 1 : 0) + (misses === 0 ? 1 : 0);
-                totalStats.stars += earnedStars;
-                localStorage.setItem('okao_stats', JSON.stringify(totalStats));
-            }
-
             missionsData.forEach(m => {
                 if (completedMissions.includes(m.id)) return;
                 let achieved = false;
                 switch(m.goal.type) {
                     case 'score': if(score >= m.goal.value) achieved = true; break;
-                    case 'total_score': if(totalStats.score >= m.goal.value) achieved = true; break;
                     case 'combo': if(maxCombo >= m.goal.value) achieved = true; break;
                     case 'perfects': if(perfects >= m.goal.value) achieved = true; break;
                     case 'win': if(win) achieved = true; break;
                     case 'miss': if(win && misses <= m.goal.value) achieved = true; break;
                     case 'lives': if(win && lives >= m.goal.value) achieved = true; break;
-                    case 'stars': 
-                        let stars = win ? (1 + (lives >= 2 ? 1 : 0) + (misses === 0 ? 1 : 0)) : 0;
-                        if(stars >= m.goal.value) achieved = true; 
-                        break;
-                    case 'death_win': if(win && currentSong.death) achieved = true; break;
-                    case 'songs_completed': if(totalStats.songs >= m.goal.value) achieved = true; break;
-                    case 'ratio_perfect': 
-                        if(win && (perfects / (perfects + misses)) >= m.goal.value) achieved = true; 
-                        break;
-                    case 'total_stars': if(totalStats.stars >= m.goal.value) achieved = true; break;
-                    case 'speed_win': if(win && currentSong.speed >= m.goal.value) achieved = true; break;
-                    case 'song_id_win': if(win && currentSong.id === m.goal.value) achieved = true; break;
-                    case 'song_id_perfects': if(win && currentSong.id === m.goal.value.id && perfects >= m.goal.value.count) achieved = true; break;
-                    case 'song_id_score': if(win && currentSong.id === m.goal.value.id && score >= m.goal.value.score) achieved = true; break;
                 }
                 if(achieved) {
                     completedMissions.push(m.id);
@@ -1471,12 +1402,12 @@
             }
             audio.src = songs[index].path;
             audio.load();
-            const videoId = songs[index].yt;
-            if (videoId && videoId !== "") {
-                bgIframe.src = `https://www.youtube.com/embed/${videoId}?autoplay=1&controls=0&mute=1&loop=1&playlist=${videoId}&enablejsapi=1`;
+            if(songs[index].yt) {
+                bgIframe.src = `${songs[index].yt}?autoplay=1&controls=0&mute=1&loop=1&playlist=${songs[index].yt.split('/').pop()}&enablejsapi=1`;
                 videoContainer.style.display = 'block';
             } else {
-                bgIframe.src = "";
+                document.getElementById('game-canvas').style.backgroundImage = `url('${songs[index].bg}')`;
+                document.getElementById('game-canvas').style.backgroundSize = 'cover';
                 videoContainer.style.display = 'none';
             }
             document.getElementById('main-ui').style.opacity = '0';
@@ -1502,12 +1433,8 @@
             isDead = false; isPaused = false; analyzerActive = true;
             combo = 0; score = 0; perfects = 0; misses = 0; maxCombo = 0;
             audio.currentTime = 0;
-            audio.playbackRate = 1.0;
             audio.play();
-            if (songs[selectedSongIndex].yt && songs[selectedSongIndex].yt !== "") {
-                bgIframe.contentWindow.postMessage('{"event":"command","func":"playVideo","args":""}', '*');
-            }
-
+            if(songs[selectedSongIndex].yt) bgIframe.contentWindow.postMessage('{"event":"command","func":"playVideo","args":""}', '*');
             if (currentGameMode === 'recovery') {
                 health = 50;
                 document.getElementById('lives-ui').style.display = 'none';
@@ -1519,91 +1446,29 @@
                 document.getElementById('health-ui').style.display = 'none';
                 updateLivesUI();
             }
-
             requestAnimationFrame(gameLoop);
         }
 
         function gameLoop() {
             if (!analyzerActive || isPaused || isDead) return;
             analyzer.getByteFrequencyData(dataArray);
-            let bass = 0, lowMid = 0, mid = 0, treble = 0;
-            for(let i=0; i<4; i++) bass += dataArray[i];
-            for(let i=4; i<12; i++) lowMid += dataArray[i];
-            for(let i=12; i<30; i++) mid += dataArray[i];
-            for(let i=30; i<60; i++) treble += dataArray[i];
-            bass /= 4; lowMid /= 8; mid /= 18; treble /= 30;
-            let currentEnergy = (bass + lowMid + mid + treble) / 4;
-            dynamicSpeed = 0.8 + (currentEnergy / 255) * 1.2;
+            let bass = 0; for(let i=0; i<4; i++) bass += dataArray[i]; bass /= 4;
+            dynamicSpeed = 0.8 + (bass / 255) * 1.2;
             const now = Date.now() + audioOffset;
             const song = songs[selectedSongIndex];
-            let dynamicCooldown = (spawnCooldown + (song.diff * 0.5)) / (0.6 + (currentEnergy / 100));
-            
-            if (now - lastSpawnTime > dynamicCooldown) {
-                let lanesToSpawn = [];
-                let threshold = song.diff;
-                if (currentEnergy > threshold + 30 && Math.random() < 0.3) {
-                    const patternRand = Math.random();
-                    if (patternRand > 0.7) patternMode = 'ladder';
-                    else if (patternRand > 0.4) patternMode = 'burst';
-                    else patternMode = 'quad';
-                } else {
-                    patternMode = 'random';
-                }
-                if (patternMode === 'ladder') {
-                    lanesToSpawn.push(currentLadderLane);
-                    currentLadderLane += ladderDirection;
-                    if (currentLadderLane >= 3 || currentLadderLane <= 0) ladderDirection *= -1;
-                } else if (patternMode === 'burst') {
-                    let mainLane = Math.floor(Math.random() * 4);
-                    lanesToSpawn.push(mainLane);
-                    if (Math.random() > 0.5) lanesToSpawn.push((mainLane + 2) % 4);
-                } else if (patternMode === 'quad') {
-                    let startLane = Math.floor(Math.random() * 4);
-                    lanesToSpawn = [startLane, (startLane + 1) % 4, (startLane + 2) % 4, (startLane + 3) % 4];
-                } else {
-                    if (bass > threshold - 5) lanesToSpawn.push(Math.random() > 0.5 ? 0 : 3);
-                    if (lowMid > threshold + 10) lanesToSpawn.push(1);
-                    if (mid > threshold + 20) lanesToSpawn.push(2);
-                    if (treble > threshold + 30) lanesToSpawn.push(3);
-                }
-                let laneCount = {};
-                activeNotes.forEach(n => {
-                    if (parseFloat(n.el.style.top) < 200) {
-                        laneCount[n.lane] = (laneCount[n.lane] || 0) + 1;
-                    }
-                });
-                let balancedLanes = lanesToSpawn.filter(l => (laneCount[l] || 0) === 0);
-                let finalLanes = [...new Set(balancedLanes)];
-                if (patternMode !== 'quad' && finalLanes.length > 2) finalLanes = finalLanes.slice(0, 2);
-                if (finalLanes.length > 0) {
-                    finalLanes.forEach(l => spawnNote(l));
-                    lastSpawnTime = now;
-                }
+            if (now - lastSpawnTime > (spawnCooldown + (song.diff * 0.5))) {
+                spawnNote(Math.floor(Math.random() * 4));
+                lastSpawnTime = now;
             }
-
-            const hitZone = window.innerHeight - 165;
             activeNotes.forEach(n => {
                 let currentY = parseFloat(n.el.style.top || -100);
-                let speedFactor = song.speed * 8.5 * dynamicSpeed;
-                n.el.style.top = (currentY + speedFactor) + 'px';
-
-                if (currentGameMode === 'auto' && currentY > hitZone - 20 && !n.hit) {
-                    handleInput(n.lane);
-                }
-
+                n.el.style.top = (currentY + (song.speed * 8.5 * dynamicSpeed)) + 'px';
                 if (currentY > window.innerHeight) {
                     n.el.remove();
                     activeNotes = activeNotes.filter(x => x.id !== n.id);
                     if (!n.hit) {
-                        if (currentGameMode === 'recovery') {
-                            modifyHealth(-5);
-                            updateStatus('MISS', '#ff4757');
-                            misses++;
-                            combo = 0;
-                            document.getElementById('combo-text').textContent = "0";
-                        } else {
-                            loseLife();
-                        }
+                        if (currentGameMode === 'recovery') modifyHealth(-5);
+                        else loseLife();
                     }
                 }
             });
@@ -1629,69 +1494,30 @@
             if(isPaused || isDead) return;
             const slot = document.getElementById(`s${lane}`);
             slot.classList.add('pressed');
-            if (flashIntensity > 0) slot.style.boxShadow = `0 0 ${flashIntensity}px var(--k${lane+1})`;
-            setTimeout(() => { slot.classList.remove('pressed'); slot.style.boxShadow = 'none'; }, 100);
-            
+            setTimeout(() => slot.classList.remove('pressed'), 100);
             const hitZone = window.innerHeight - 165;
             let note = activeNotes.find(n => n.lane == lane && !n.hit && parseFloat(n.el.style.top) > hitZone - 120);
-            
             if (note) {
                 const noteY = parseFloat(note.el.style.top);
                 const dist = Math.abs(noteY - hitZone);
-                note.hit = true;
-                note.el.remove();
-                
-                if (currentGameMode === 'recovery') {
-                    if (dist < 50) { 
-                        modifyHealth(3); 
-                        updateStatus('PERFECT', '#00ffcc');
-                        perfects++;
-                    } else { 
-                        modifyHealth(1); 
-                        updateStatus('GREAT', '#eab000');
-                    }
-                    combo++;
-                } else if (currentGameMode === 'auto') {
-                    updateStatus('AUTO', '#fff');
-                    combo++;
-                } else {
-                    if (dist < 50) { 
-                        score += (100 * (1 + combo * 0.02)); 
-                        combo++; 
-                        perfects++; 
-                        updateStatus('PERFECT', '#00ffcc'); 
-                    } else { 
-                        score += (50 * (1 + combo * 0.01)); 
-                        combo++; 
-                        updateStatus('GREAT', '#eab000'); 
-                    }
-                }
-                
+                note.hit = true; note.el.remove();
+                if (dist < 50) { score += 100; combo++; perfects++; updateStatus('PERFECT', '#00ffcc'); }
+                else { score += 50; combo++; updateStatus('GREAT', '#eab000'); }
                 if (combo > maxCombo) maxCombo = combo;
                 document.getElementById('combo-text').textContent = combo;
-            } else { 
-                if (currentGameMode === 'recovery') {
-                    modifyHealth(-5);
-                    updateStatus('MISS', '#ff4757');
-                    misses++;
-                    combo = 0;
-                    document.getElementById('combo-text').textContent = "0";
-                } else if (currentGameMode !== 'auto') {
-                    loseLife();
-                }
+            } else if (currentGameMode !== 'auto') {
+                if(currentGameMode === 'recovery') modifyHealth(-5); else loseLife();
             }
         }
 
         function modifyHealth(val) {
             health += val;
             if (health > 100) health = 100;
-            if (health <= 0) { health = 0; endGame(false); }
+            if (health <= 0) endGame(false);
             updateHealthUI();
         }
 
-        function updateHealthUI() {
-            document.getElementById('health-fill').style.height = health + '%';
-        }
+        function updateHealthUI() { document.getElementById('health-fill').style.height = health + '%'; }
 
         function loseLife() {
             lives--; misses++; combo = 0;
@@ -1716,26 +1542,13 @@
             isPaused = !isPaused;
             if (isPaused) {
                 audio.pause();
-                if (songs[selectedSongIndex].yt && songs[selectedSongIndex].yt !== "") {
-                    bgIframe.contentWindow.postMessage('{"event":"command","func":"pauseVideo","args":""}', '*');
-                }
+                if(songs[selectedSongIndex].yt) bgIframe.contentWindow.postMessage('{"event":"command","func":"pauseVideo","args":""}', '*');
             } else {
                 audio.play();
-                if (songs[selectedSongIndex].yt && songs[selectedSongIndex].yt !== "") {
-                    bgIframe.contentWindow.postMessage('{"event":"command","func":"playVideo","args":""}', '*');
-                }
+                if(songs[selectedSongIndex].yt) bgIframe.contentWindow.postMessage('{"event":"command","func":"playVideo","args":""}', '*');
                 requestAnimationFrame(gameLoop);
             }
-            const overlay = document.getElementById('overlay-game');
-            overlay.style.display = isPaused ? 'flex' : 'none';
-            overlay.style.backgroundImage = isPaused ? "url('img/ft/f1.jpg')" : "none";
-            document.getElementById('overlay-title').textContent = "PAUSADO";
-            document.getElementById('results-display').style.display = 'none';
-            document.getElementById('btn-resume').style.display = 'block';
-            if(isPaused) {
-                const btns = document.querySelectorAll('.action-btn');
-                btns.forEach(b => { b.style.animation = 'none'; setTimeout(() => b.style.animation = '', 10); });
-            }
+            document.getElementById('overlay-game').style.display = isPaused ? 'flex' : 'none';
         }
 
         function restartSong() {
@@ -1747,35 +1560,11 @@
 
         function endGame(win) {
             isDead = true; analyzerActive = false; audio.pause();
-            if (songs[selectedSongIndex].yt && songs[selectedSongIndex].yt !== "") {
-                bgIframe.contentWindow.postMessage('{"event":"command","func":"pauseVideo","args":""}', '*');
-            }
             const overlay = document.getElementById('overlay-game');
             overlay.style.display = 'flex';
-            overlay.style.backgroundImage = "url('img/ft/f2.jpg')";
-            document.getElementById('btn-resume').style.display = 'none';
             document.getElementById('results-display').style.display = 'flex';
             document.getElementById('overlay-title').textContent = win ? "TERMINADO" : "FALLIDO";
-            
-            const stars = document.querySelectorAll('.star');
-            stars.forEach(s => s.classList.remove('active'));
-            
-            if (currentGameMode === 'auto' || currentGameMode === 'recovery') {
-                document.getElementById('res-score').textContent = "N/A";
-                if (win) {
-                    stars[0].classList.add('active');
-                    stars[1].classList.add('active');
-                    stars[2].classList.add('active');
-                }
-            } else {
-                if(win) {
-                    stars[0].classList.add('active');
-                    if(lives >= 2) stars[1].classList.add('active');
-                    if(misses === 0) stars[2].classList.add('active');
-                }
-                document.getElementById('res-score').textContent = Math.floor(score);
-            }
-            
+            document.getElementById('res-score').textContent = Math.floor(score);
             document.getElementById('res-combo').textContent = maxCombo;
             document.getElementById('res-perfect').textContent = perfects;
             document.getElementById('res-miss').textContent = misses;
@@ -1793,8 +1582,10 @@
                 return;
             }
             if (e.key === 'Escape') togglePause();
-            if (e.key === 'Enter' && isPaused && !isDead) togglePause();
-            if (e.key === 'Enter' && isDead) restartSong();
+            if (e.key === 'Enter') {
+                if (isPaused && !isDead) togglePause();
+                else if (isDead) restartSong();
+            }
             const idx = gameKeys.indexOf(k);
             if (idx !== -1) handleInput(idx);
         });
