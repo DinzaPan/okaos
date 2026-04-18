@@ -797,7 +797,7 @@
             <div id="btn-inicio" class="menu-bar active" style="animation-delay: 0.1s;" onclick="showMainView()">Inicio</div>
             <div id="btn-perfil" class="menu-bar" style="animation-delay: 0.2s;" onclick="showProfileView()">Perfil</div>
             <div id="btn-misiones" class="menu-bar" style="animation-delay: 0.3s;" onclick="showMissionsView()">Misiones</div>
-            <div id="btn-mods" class="menu-bar" style="animation-delay: 0.35s;" onclick="showModsView()">Modificadores</div>
+            <div id="btn-mods" class="menu-bar" style="animation-delay: 0.35s;" onclick="showModsView()">Mods</div>
             <div id="btn-ajustes" class="menu-bar" style="animation-delay: 0.4s;" onclick="showSettingsView()">Ajustes</div>
         </div>
         <div id="right-song-container"></div>
@@ -867,6 +867,7 @@
     </div>
 
     <input type="file" id="avatar-upload" accept="image/*" style="display: none;" onchange="handleAvatarChange(event)">
+    <input type="file" id="mod-upload" accept=".html" style="display: none;" onchange="handleModUpload(event)">
 
     <div id="mode-selector">
         <h2 class="mode-title">Selecciona Modo</h2>
@@ -1008,19 +1009,12 @@
             { id: 32, title: "Tratamiento de Oro", desc: "Logra 25,000 puntos en IGAKU/Medicine.", goal: { type: 'song_id_score', value: { id: 11, score: 25000 } } }
         ];
 
-        const modsData = [
-            { id: 'mirror', name: 'Mirror', desc: 'Invierte las flechas del carril.', multiplier: 1.05 },
-            { id: 'blind', name: 'Blind', desc: 'Las notas desaparecen a mitad del camino.', multiplier: 1.25 },
-            { id: 'hardcore', name: 'Hardcore', desc: 'Un solo fallo y se acaba la partida.', multiplier: 1.50 },
-            { id: 'speedup', name: 'Speed Up', desc: 'La velocidad aumenta gradualmente.', multiplier: 1.20 }
-        ];
-
         let gameKeys = ['a', 's', 'k', 'l'];
         let captureIndex = -1, selectedSongIndex = 0;
         let combo = 0, maxCombo = 0, score = 0, perfects = 0, misses = 0, lives = 3;
         let isPaused = false, isDead = false, analyzerActive = false, isPlaying = false;
         let activeNotes = [];
-        let activeMods = [];
+        let uploadedMods = JSON.parse(localStorage.getItem('okao_uploaded_mods') || '[]');
         let audioCtx, analyzer, dataArray;
         let spawnCooldown = 220;
         let audioOffset = 0, trackOpacity = 0.02, flashIntensity = 30;
@@ -1124,32 +1118,61 @@
         function initModsView() {
             const container = document.getElementById('right-mods-container');
             container.innerHTML = '';
-            modsData.forEach((m, i) => {
-                const isActive = activeMods.includes(m.id);
+            
+            const uploadBtn = document.createElement('div');
+            uploadBtn.className = 'mod-item enter';
+            uploadBtn.onclick = () => document.getElementById('mod-upload').click();
+            uploadBtn.innerHTML = `
+                <div class="disc-wrap">
+                    <img src="img/icons/disco2.gif" class="disc-gif">
+                </div>
+                <div class="mod-info">
+                    <h3>Subir Mod</h3>
+                    <p>Carga un archivo .html personalizado</p>
+                </div>
+            `;
+            container.appendChild(uploadBtn);
+
+            uploadedMods.forEach((m, i) => {
                 const item = document.createElement('div');
-                item.className = `mod-item enter ${isActive ? 'active' : ''}`;
-                item.style.animationDelay = `${i * 0.05}s`;
-                item.onclick = () => toggleMod(m.id);
+                item.className = 'mod-item enter';
+                item.style.animationDelay = `${(i + 1) * 0.05}s`;
+                item.onclick = () => executeMod(m.content);
                 item.innerHTML = `
                     <div class="disc-wrap">
-                        <img src="img/icons/disco2.gif" class="disc-gif" style="filter: ${isActive ? 'hue-rotate(180deg)' : 'grayscale(1)'}">
+                        <img src="img/icons/disco2.gif" class="disc-gif" style="filter: hue-rotate(180deg)">
                     </div>
                     <div class="mod-info">
-                        <h3>${m.name} [x${m.multiplier}]</h3>
-                        <p>${m.desc}</p>
+                        <h3>${m.name}</h3>
+                        <p>Modificación de Usuario</p>
                     </div>
                 `;
                 container.appendChild(item);
             });
         }
 
-        function toggleMod(modId) {
-            if (activeMods.includes(modId)) {
-                activeMods = activeMods.filter(id => id !== modId);
-            } else {
-                activeMods.push(modId);
+        function handleModUpload(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    const content = event.target.result;
+                    const parser = new DOMParser();
+                    const doc = parser.parseFromString(content, "text/html");
+                    const title = doc.title || file.name.replace('.html', '');
+                    
+                    uploadedMods.push({ name: title, content: content });
+                    localStorage.setItem('okao_uploaded_mods', JSON.stringify(uploadedMods));
+                    initModsView();
+                };
+                reader.readAsText(file);
             }
-            initModsView();
+        }
+
+        function executeMod(content) {
+            const blob = new Blob([content], { type: 'text/html' });
+            const url = URL.createObjectURL(blob);
+            window.open(url, '_blank');
         }
 
         function openModeSelector(index) {
@@ -1431,7 +1454,6 @@
             let currentEnergy = (bass + lowMid + mid + treble) / 4;
             
             let baseSpeed = 0.8;
-            if (activeMods.includes('speedup')) baseSpeed = 0.8 + (audio.currentTime / audio.duration) * 0.5;
             dynamicSpeed = baseSpeed + (currentEnergy / 255) * 1.2;
 
             const now = Date.now() + audioOffset;
@@ -1487,10 +1509,6 @@
                 let speedFactor = song.speed * 8.5 * dynamicSpeed;
                 n.el.style.top = (currentY + speedFactor) + 'px';
 
-                if (activeMods.includes('blind') && currentY > hitZone - 200) {
-                    n.el.style.opacity = Math.max(0, 1 - (currentY - (hitZone - 200)) / 100);
-                }
-
                 if (currentGameMode === 'auto' && currentY > hitZone - 20 && !n.hit) {
                     handleInput(n.lane);
                 }
@@ -1506,8 +1524,7 @@
                             combo = 0;
                             document.getElementById('combo-text').textContent = "0";
                         } else {
-                            if (activeMods.includes('hardcore')) endGame(false);
-                            else loseLife();
+                            loseLife();
                         }
                     }
                 }
@@ -1519,21 +1536,15 @@
             const id = Math.random();
             const el = document.createElement('div');
             el.className = 'note';
-            
-            let finalLane = lane;
-            if (activeMods.includes('mirror')) {
-                finalLane = 3 - lane;
-            }
-            
-            el.dataset.lane = finalLane;
-            el.innerHTML = arrowSvgs[finalLane];
-            const slot = document.getElementById(`s${finalLane}`);
+            el.dataset.lane = lane;
+            el.innerHTML = arrowSvgs[lane];
+            const slot = document.getElementById(`s${lane}`);
             const trackRect = document.getElementById('track').getBoundingClientRect();
             const slotRect = slot.getBoundingClientRect();
             el.style.left = (slotRect.left - trackRect.left) + 'px';
             el.style.top = '-100px';
             document.getElementById('track').appendChild(el);
-            activeNotes.push({ id, el, lane: finalLane, hit: false });
+            activeNotes.push({ id, el, lane: lane, hit: false });
         }
 
         function handleInput(lane) {
@@ -1551,12 +1562,6 @@
                 const dist = Math.abs(noteY - hitZone);
                 note.hit = true;
                 note.el.remove();
-                
-                let modMult = 1;
-                activeMods.forEach(mId => {
-                    const m = modsData.find(x => x.id === mId);
-                    if (m) modMult *= m.multiplier;
-                });
 
                 if (currentGameMode === 'recovery') {
                     if (dist < 50) { modifyHealth(3); updateStatus('PERFECT', '#00ffcc'); perfects++; }
@@ -1567,12 +1572,12 @@
                     combo++;
                 } else {
                     if (dist < 50) { 
-                        score += (100 * (1 + combo * 0.02)) * modMult; 
+                        score += (100 * (1 + combo * 0.02)); 
                         combo++; 
                         perfects++; 
                         updateStatus('PERFECT', '#00ffcc'); 
                     } else { 
-                        score += (50 * (1 + combo * 0.01)) * modMult; 
+                        score += (50 * (1 + combo * 0.01)); 
                         combo++; 
                         updateStatus('GREAT', '#eab000'); 
                     }
@@ -1588,8 +1593,7 @@
                     combo = 0;
                     document.getElementById('combo-text').textContent = "0";
                 } else if (currentGameMode !== 'auto') {
-                    if (activeMods.includes('hardcore')) endGame(false);
-                    else loseLife();
+                    loseLife();
                 }
             }
         }
@@ -1634,7 +1638,6 @@
             }
             const overlay = document.getElementById('overlay-game');
             overlay.style.display = isPaused ? 'flex' : 'none';
-            overlay.style.backgroundImage = isPaused ? "url('img/ft/f1.jpg')" : "none";
             document.getElementById('overlay-title').textContent = "PAUSADO";
             document.getElementById('results-display').style.display = 'none';
             document.getElementById('btn-resume').style.display = 'block';
@@ -1656,7 +1659,6 @@
             bgIframe.contentWindow.postMessage('{"event":"command","func":"pauseVideo","args":""}', '*');
             const overlay = document.getElementById('overlay-game');
             overlay.style.display = 'flex';
-            overlay.style.backgroundImage = "url('img/ft/f2.jpg')";
             document.getElementById('btn-resume').style.display = 'none';
             document.getElementById('results-display').style.display = 'flex';
             document.getElementById('overlay-title').textContent = win ? "TERMINADO" : "FALLIDO";
