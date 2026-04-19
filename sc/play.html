@@ -412,7 +412,7 @@
     </style>
 </head>
 <body>
-    <iframe id="video-background" src="" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+    <iframe id="video-background" src="" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
     <audio id="game-audio" preload="auto" crossorigin="anonymous"></audio>
     
     <div id="intro-layer">
@@ -524,32 +524,33 @@
         let health = 50;
         let lastKeyProcessTime = 0;
         let keyProcessCooldown = 50;
-        let reloadTriggered = false;
+        let videoStarted = false;
         
         const audio = document.getElementById('game-audio');
         const videoIframe = document.getElementById('video-background');
         
         document.documentElement.style.setProperty('--track-opacity', trackOpacity);
 
-        if (!localStorage.getItem('video_auto_play_triggered')) {
-            localStorage.setItem('video_auto_play_triggered', 'true');
-            location.reload();
-        } else {
-            localStorage.removeItem('video_auto_play_triggered');
-        }
-
         function startVideo() {
-            if (currentSong.videoUrl && currentSong.videoUrl !== '') {
+            if (currentSong.videoUrl && currentSong.videoUrl !== '' && !videoStarted) {
                 let videoSrc = currentSong.videoUrl;
                 if (!videoSrc.includes('autoplay=1')) {
                     if (videoSrc.includes('?')) {
-                        videoSrc = videoSrc + '&autoplay=1&mute=1';
+                        videoSrc = videoSrc + '&autoplay=1&mute=1&playsinline=1';
                     } else {
-                        videoSrc = videoSrc + '?autoplay=1&mute=1';
+                        videoSrc = videoSrc + '?autoplay=1&mute=1&playsinline=1';
+                    }
+                } else {
+                    if (!videoSrc.includes('mute=1')) {
+                        videoSrc = videoSrc + '&mute=1';
+                    }
+                    if (!videoSrc.includes('playsinline=1')) {
+                        videoSrc = videoSrc + '&playsinline=1';
                     }
                 }
                 videoIframe.src = videoSrc;
                 videoIframe.style.display = 'block';
+                videoStarted = true;
             }
         }
 
@@ -813,17 +814,11 @@
             isPaused = !isPaused;
             if (isPaused) {
                 audio.pause();
-                if (videoIframe && videoIframe.contentWindow) {
-                    videoIframe.contentWindow.postMessage('{"event":"command","func":"pauseVideo","args":""}', '*');
-                }
             } else { 
                 if (audioCtx && audioCtx.state === 'suspended') {
                     audioCtx.resume();
                 }
                 audio.play(); 
-                if (videoIframe && videoIframe.contentWindow) {
-                    videoIframe.contentWindow.postMessage('{"event":"command","func":"playVideo","args":""}', '*');
-                }
                 requestAnimationFrame(gameLoop); 
             }
             const overlay = document.getElementById('overlay-game');
@@ -842,9 +837,6 @@
             activeNotes.forEach(n => n.el.remove());
             activeNotes = [];
             document.getElementById('overlay-game').style.display = 'none';
-            if (videoIframe && videoIframe.contentWindow) {
-                videoIframe.contentWindow.postMessage('{"event":"command","func":"playVideo","args":""}', '*');
-            }
             if (audioCtx && audioCtx.state === 'suspended') {
                 audioCtx.resume();
             }
@@ -855,9 +847,6 @@
 
         function endGame(win) {
             isDead = true; analyzerActive = false; audio.pause();
-            if (videoIframe && videoIframe.contentWindow) {
-                videoIframe.contentWindow.postMessage('{"event":"command","func":"pauseVideo","args":""}', '*');
-            }
             const overlay = document.getElementById('overlay-game');
             overlay.style.display = 'flex';
             overlay.style.backgroundImage = "url('../img/ft/f2.jpg')";
