@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>OKAOs - Jugando</title>
+    <title>OKAOs - Cargando...</title>
     <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
         * {
@@ -482,6 +482,8 @@
             nerfed: urlParams.get('nerfed') === 'true',
             bg: '../' + urlParams.get('bg')
         };
+        
+        document.title = `OKAOs - ${currentSong.name}`;
         
         let gameKeys = JSON.parse(urlParams.get('keys'));
         let audioOffset = parseInt(urlParams.get('offset'));
