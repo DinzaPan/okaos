@@ -524,15 +524,22 @@
         let health = 50;
         let lastKeyProcessTime = 0;
         let keyProcessCooldown = 50;
-        let videoStarted = false;
+        let reloadTriggered = false;
         
         const audio = document.getElementById('game-audio');
         const videoIframe = document.getElementById('video-background');
         
         document.documentElement.style.setProperty('--track-opacity', trackOpacity);
 
+        if (!localStorage.getItem('video_auto_play_triggered')) {
+            localStorage.setItem('video_auto_play_triggered', 'true');
+            location.reload();
+        } else {
+            localStorage.removeItem('video_auto_play_triggered');
+        }
+
         function startVideo() {
-            if (currentSong.videoUrl && currentSong.videoUrl !== '' && !videoStarted) {
+            if (currentSong.videoUrl && currentSong.videoUrl !== '') {
                 let videoSrc = currentSong.videoUrl;
                 if (!videoSrc.includes('autoplay=1')) {
                     if (videoSrc.includes('?')) {
@@ -543,7 +550,6 @@
                 }
                 videoIframe.src = videoSrc;
                 videoIframe.style.display = 'block';
-                videoStarted = true;
             }
         }
 
