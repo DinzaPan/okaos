@@ -501,7 +501,15 @@
         
         if (currentSong.videoUrl && currentSong.videoUrl !== '') {
             const videoIframe = document.getElementById('video-background');
-            videoIframe.src = currentSong.videoUrl + '&autoplay=1&mute=1&loop=1&playlist=' + currentSong.videoUrl.split('/embed/')[1].split('?')[0];
+            let videoSrc = currentSong.videoUrl;
+            if (!videoSrc.includes('autoplay=1')) {
+                if (videoSrc.includes('?')) {
+                    videoSrc = videoSrc + '&autoplay=1&mute=1';
+                } else {
+                    videoSrc = videoSrc + '?autoplay=1&mute=1';
+                }
+            }
+            videoIframe.src = videoSrc;
             videoIframe.style.display = 'block';
         }
         
@@ -530,6 +538,7 @@
         let health = 50;
         let lastKeyProcessTime = 0;
         let keyProcessCooldown = 50;
+        let audioStarted = false;
         
         const audio = document.getElementById('game-audio');
         
@@ -560,12 +569,24 @@
                 dataArray = new Uint8Array(analyzer.frequencyBinCount);
             }
             
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+            
             audio.src = currentSong.path;
             audio.load();
             audio.currentTime = 0;
             audio.playbackRate = 1.0;
             
-            audio.play().catch(e => console.log('Audio play error:', e));
+            audio.play().then(() => {
+                audioStarted = true;
+            }).catch(e => {
+                console.log('Audio play error:', e);
+                document.body.addEventListener('click', function playOnClick() {
+                    audio.play().catch(() => {});
+                    document.body.removeEventListener('click', playOnClick);
+                }, { once: true });
+            });
 
             if (currentGameMode === 'recovery') {
                 health = 50;
@@ -783,6 +804,9 @@
                     videoIframe.contentWindow.postMessage('{"event":"command","func":"pauseVideo","args":""}', '*');
                 }
             } else { 
+                if (audioCtx && audioCtx.state === 'suspended') {
+                    audioCtx.resume();
+                }
                 audio.play(); 
                 if (currentSong.videoUrl && currentSong.videoUrl !== '') {
                     const videoIframe = document.getElementById('video-background');
@@ -810,6 +834,11 @@
                 const videoIframe = document.getElementById('video-background');
                 videoIframe.contentWindow.postMessage('{"event":"command","func":"playVideo","args":""}', '*');
             }
+            if (audioCtx && audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+            audio.currentTime = 0;
+            audio.play();
             initGame();
         }
 
