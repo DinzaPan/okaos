@@ -457,6 +457,24 @@
             transform: translateY(20px);
             transition: all 0.5s ease;
         }
+
+        .fullscreen-btn {
+            background: var(--glass);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 10px 20px;
+            font-family: 'Fredoka', sans-serif;
+            font-size: 1rem;
+            font-weight: 600;
+            color: white;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .fullscreen-btn:hover {
+            background: var(--accent);
+            color: #000;
+        }
     </style>
 </head>
 <body>
@@ -490,6 +508,16 @@
             </div>
             <div class="setting-item enter" style="animation-delay: 0.05s;">
                 <div class="setting-info">
+                    <h3>Tamaño de Flechas</h3>
+                    <p>Ajusta el tamaño de las flechas en juego</p>
+                    <div class="setting-control">
+                        <input type="range" id="arrow-size-range" min="60" max="150" step="5" value="100" oninput="updateArrowSize(this.value)">
+                        <span class="setting-value" id="arrow-size-val">100px</span>
+                    </div>
+                </div>
+            </div>
+            <div class="setting-item enter" style="animation-delay: 0.1s;">
+                <div class="setting-info">
                     <h3>Calibración</h3>
                     <p>Ajuste de Offset (ms)</p>
                     <div class="setting-control">
@@ -498,7 +526,7 @@
                     </div>
                 </div>
             </div>
-            <div class="setting-item enter" style="animation-delay: 0.1s;">
+            <div class="setting-item enter" style="animation-delay: 0.15s;">
                 <div class="setting-info">
                     <h3>Visual</h3>
                     <p>Opacidad del Carril</p>
@@ -508,7 +536,7 @@
                     </div>
                 </div>
             </div>
-            <div class="setting-item enter" style="animation-delay: 0.15s;">
+            <div class="setting-item enter" style="animation-delay: 0.2s;">
                 <div class="setting-info">
                     <h3>Efectos</h3>
                     <p>Intensidad de Flash</p>
@@ -518,7 +546,7 @@
                     </div>
                 </div>
             </div>
-            <div class="setting-item enter" style="animation-delay: 0.2s;">
+            <div class="setting-item enter" style="animation-delay: 0.25s;">
                 <div class="setting-info">
                     <h3>Audio</h3>
                     <p>Volumen Maestro</p>
@@ -528,7 +556,16 @@
                     </div>
                 </div>
             </div>
-            <div class="setting-item enter" style="animation-delay: 0.25s;" onclick="saveLocalSettings()">
+            <div class="setting-item enter" style="animation-delay: 0.3s;">
+                <div class="setting-info">
+                    <h3>Pantalla Completa</h3>
+                    <p>Alternar modo pantalla completa</p>
+                    <div class="setting-control">
+                        <button class="fullscreen-btn" onclick="toggleFullscreen()">F11 / Pantalla Completa</button>
+                    </div>
+                </div>
+            </div>
+            <div class="setting-item enter" style="animation-delay: 0.35s;" onclick="saveLocalSettings()">
                 <div class="setting-info">
                     <h3>Guardar</h3>
                     <p>Aplicar todos los cambios</p>
@@ -612,11 +649,26 @@
 
         let gameKeys = ['a', 's', 'k', 'l'];
         let captureIndex = -1, selectedSongIndex = 0;
-        let audioOffset = 0, trackOpacity = 0.02, flashIntensity = 30;
+        let audioOffset = 0, trackOpacity = 0.02, flashIntensity = 30, arrowSize = 100;
         
         let completedMissions = JSON.parse(localStorage.getItem('okao_missions') || '[]');
         let totalStats = JSON.parse(localStorage.getItem('okao_stats') || '{"score":0, "songs":0, "stars":0, "bestScore":0}');
         let userData = JSON.parse(localStorage.getItem('okao_user') || '{"name":"Usuario", "avatar":""}');
+
+        function toggleFullscreen() {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen().catch(err => {
+                    console.log(`Error: ${err.message}`);
+                });
+            } else {
+                document.exitFullscreen();
+            }
+        }
+
+        function updateArrowSize(val) {
+            arrowSize = parseInt(val);
+            document.getElementById('arrow-size-val').textContent = arrowSize + 'px';
+        }
 
         function initSongList() {
             const container = document.getElementById('right-song-container');
@@ -688,6 +740,7 @@
             params.set('offset', audioOffset);
             params.set('opacity', trackOpacity);
             params.set('flash', flashIntensity);
+            params.set('arrowSize', arrowSize);
             params.set('keys', JSON.stringify(gameKeys));
             window.location.href = `sc/play.html?${params.toString()}`;
         }
@@ -880,6 +933,8 @@
             localStorage.setItem('okao_offset', audioOffset);
             localStorage.setItem('okao_opacity', trackOpacity);
             localStorage.setItem('okao_flash', flashIntensity);
+            localStorage.setItem('okao_arrow_size', arrowSize);
+            notifyMission();
         }
 
         function loadSavedSettings() {
@@ -888,6 +943,7 @@
             const savedOffset = localStorage.getItem('okao_offset');
             const savedOpacity = localStorage.getItem('okao_opacity');
             const savedFlash = localStorage.getItem('okao_flash');
+            const savedArrowSize = localStorage.getItem('okao_arrow_size');
             if (savedKeys) {
                 gameKeys = JSON.parse(savedKeys);
                 gameKeys.forEach((k, i) => document.getElementById(`cfg-${i}`).textContent = k);
@@ -911,6 +967,11 @@
                 document.getElementById('flash-range').value = savedFlash;
                 document.getElementById('flash-val').textContent = flashIntensity;
             }
+            if (savedArrowSize) {
+                arrowSize = parseInt(savedArrowSize);
+                document.getElementById('arrow-size-range').value = arrowSize;
+                document.getElementById('arrow-size-val').textContent = arrowSize + 'px';
+            }
         }
 
         window.addEventListener('keydown', (e) => {
@@ -921,6 +982,10 @@
                 document.getElementById(`cfg-${captureIndex}`).classList.remove('waiting');
                 captureIndex = -1;
                 return;
+            }
+            if (e.key === 'F11') {
+                e.preventDefault();
+                toggleFullscreen();
             }
         });
 
