@@ -40,12 +40,24 @@
             align-items: center;
         }
 
+        #video-background {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            z-index: 0;
+            opacity: 0.3;
+            pointer-events: none;
+        }
+
         #game-canvas {
             width: 100%;
             height: 100%;
             position: fixed;
             inset: 0;
-            background: radial-gradient(circle at center, #0a0a15 0%, #000 100%);
+            background: radial-gradient(circle at center, rgba(10,10,21,0.7) 0%, rgba(0,0,0,0.85) 100%);
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -400,6 +412,7 @@
     </style>
 </head>
 <body>
+    <iframe id="video-background" src="" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
     <audio id="game-audio" preload="auto" crossorigin="anonymous"></audio>
     
     <div id="intro-layer">
@@ -480,10 +493,17 @@
             speed: parseFloat(urlParams.get('speed')),
             death: urlParams.get('death') === 'true',
             nerfed: urlParams.get('nerfed') === 'true',
-            bg: '../' + urlParams.get('bg')
+            bg: '../' + urlParams.get('bg'),
+            videoUrl: urlParams.get('videoUrl')
         };
         
         document.title = `OKAOs - ${currentSong.name}`;
+        
+        if (currentSong.videoUrl && currentSong.videoUrl !== '') {
+            const videoIframe = document.getElementById('video-background');
+            videoIframe.src = currentSong.videoUrl + '&autoplay=1&mute=1&loop=1&playlist=' + currentSong.videoUrl.split('/embed/')[1].split('?')[0];
+            videoIframe.style.display = 'block';
+        }
         
         let gameKeys = JSON.parse(urlParams.get('keys'));
         let audioOffset = parseInt(urlParams.get('offset'));
@@ -508,6 +528,8 @@
         let ladderDirection = 1, currentLadderLane = 0;
         let patternMode = 'random';
         let health = 50;
+        let lastKeyProcessTime = 0;
+        let keyProcessCooldown = 50;
         
         const audio = document.getElementById('game-audio');
         
@@ -662,6 +684,10 @@
         }
 
         function handleInput(lane) {
+            const now = Date.now();
+            if (now - lastKeyProcessTime < keyProcessCooldown) return;
+            lastKeyProcessTime = now;
+            
             if(isPaused || isDead) return;
             const slot = document.getElementById(`s${lane}`);
             slot.classList.add('pressed');
@@ -750,7 +776,20 @@
         function togglePause() {
             if(isDead) return;
             isPaused = !isPaused;
-            if (isPaused) audio.pause(); else { audio.play(); requestAnimationFrame(gameLoop); }
+            if (isPaused) {
+                audio.pause();
+                if (currentSong.videoUrl && currentSong.videoUrl !== '') {
+                    const videoIframe = document.getElementById('video-background');
+                    videoIframe.contentWindow.postMessage('{"event":"command","func":"pauseVideo","args":""}', '*');
+                }
+            } else { 
+                audio.play(); 
+                if (currentSong.videoUrl && currentSong.videoUrl !== '') {
+                    const videoIframe = document.getElementById('video-background');
+                    videoIframe.contentWindow.postMessage('{"event":"command","func":"playVideo","args":""}', '*');
+                }
+                requestAnimationFrame(gameLoop); 
+            }
             const overlay = document.getElementById('overlay-game');
             overlay.style.display = isPaused ? 'flex' : 'none';
             overlay.style.backgroundImage = isPaused ? "url('../img/ft/f1.jpg')" : "none";
@@ -767,11 +806,19 @@
             activeNotes.forEach(n => n.el.remove());
             activeNotes = [];
             document.getElementById('overlay-game').style.display = 'none';
+            if (currentSong.videoUrl && currentSong.videoUrl !== '') {
+                const videoIframe = document.getElementById('video-background');
+                videoIframe.contentWindow.postMessage('{"event":"command","func":"playVideo","args":""}', '*');
+            }
             initGame();
         }
 
         function endGame(win) {
             isDead = true; analyzerActive = false; audio.pause();
+            if (currentSong.videoUrl && currentSong.videoUrl !== '') {
+                const videoIframe = document.getElementById('video-background');
+                videoIframe.contentWindow.postMessage('{"event":"command","func":"pauseVideo","args":""}', '*');
+            }
             const overlay = document.getElementById('overlay-game');
             overlay.style.display = 'flex';
             overlay.style.backgroundImage = "url('../img/ft/f2.jpg')";
@@ -806,11 +853,23 @@
 
         window.addEventListener('keydown', (e) => {
             const k = e.key.toLowerCase();
-            if (e.key === 'Escape') togglePause();
-            if (e.key === 'Enter' && isPaused && !isDead) togglePause();
-            if (e.key === 'Enter' && isDead) restartSong();
+            if (e.key === 'Escape') {
+                e.preventDefault();
+                togglePause();
+            }
+            if (e.key === 'Enter' && isPaused && !isDead) {
+                e.preventDefault();
+                togglePause();
+            }
+            if (e.key === 'Enter' && isDead) {
+                e.preventDefault();
+                restartSong();
+            }
             const idx = gameKeys.indexOf(k);
-            if (idx !== -1) handleInput(idx);
+            if (idx !== -1) {
+                e.preventDefault();
+                handleInput(idx);
+            }
         });
 
         audio.ontimeupdate = () => {
