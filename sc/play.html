@@ -780,11 +780,6 @@
                         combo++;
                         updateStatus('GREAT', '#eab000');
                     }
-                } else if (currentGameMode === 'auto') {
-                    updateStatus('AUTO', '#fff');
-                    combo++;
-                    perfects++;
-                    score += 100;
                 }
                 
                 if (combo > maxCombo) maxCombo = combo;
@@ -896,7 +891,7 @@
                     stars[1].classList.add('active');
                     stars[2].classList.add('active');
                 }
-            } else {
+            } else if (currentGameMode === 'normal') {
                 if(win) {
                     stars[0].classList.add('active');
                     if(lives >= 2) stars[1].classList.add('active');
