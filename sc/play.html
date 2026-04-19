@@ -499,20 +499,6 @@
         
         document.title = `OKAOs - ${currentSong.name}`;
         
-        if (currentSong.videoUrl && currentSong.videoUrl !== '') {
-            const videoIframe = document.getElementById('video-background');
-            let videoSrc = currentSong.videoUrl;
-            if (!videoSrc.includes('autoplay=1')) {
-                if (videoSrc.includes('?')) {
-                    videoSrc = videoSrc + '&autoplay=1&mute=1';
-                } else {
-                    videoSrc = videoSrc + '?autoplay=1&mute=1';
-                }
-            }
-            videoIframe.src = videoSrc;
-            videoIframe.style.display = 'block';
-        }
-        
         let gameKeys = JSON.parse(urlParams.get('keys'));
         let audioOffset = parseInt(urlParams.get('offset'));
         let trackOpacity = parseFloat(urlParams.get('opacity'));
@@ -538,11 +524,28 @@
         let health = 50;
         let lastKeyProcessTime = 0;
         let keyProcessCooldown = 50;
-        let audioStarted = false;
+        let videoStarted = false;
         
         const audio = document.getElementById('game-audio');
+        const videoIframe = document.getElementById('video-background');
         
         document.documentElement.style.setProperty('--track-opacity', trackOpacity);
+
+        function startVideo() {
+            if (currentSong.videoUrl && currentSong.videoUrl !== '' && !videoStarted) {
+                let videoSrc = currentSong.videoUrl;
+                if (!videoSrc.includes('autoplay=1')) {
+                    if (videoSrc.includes('?')) {
+                        videoSrc = videoSrc + '&autoplay=1&mute=1';
+                    } else {
+                        videoSrc = videoSrc + '?autoplay=1&mute=1';
+                    }
+                }
+                videoIframe.src = videoSrc;
+                videoIframe.style.display = 'block';
+                videoStarted = true;
+            }
+        }
 
         async function runIntro() {
             const msg = document.getElementById('intro-msg');
@@ -552,6 +555,7 @@
             msg.textContent = "¡GO!"; await new Promise(r => setTimeout(r, 400));
             document.getElementById('intro-layer').style.display = 'none';
             document.getElementById('game-canvas').style.display = 'flex';
+            startVideo();
             setTimeout(() => { document.getElementById('game-canvas').style.opacity = '1'; initGame(); }, 100);
         }
 
@@ -578,9 +582,7 @@
             audio.currentTime = 0;
             audio.playbackRate = 1.0;
             
-            audio.play().then(() => {
-                audioStarted = true;
-            }).catch(e => {
+            audio.play().catch(e => {
                 console.log('Audio play error:', e);
                 document.body.addEventListener('click', function playOnClick() {
                     audio.play().catch(() => {});
@@ -588,7 +590,11 @@
                 }, { once: true });
             });
 
-            if (currentGameMode === 'recovery') {
+            if (currentGameMode === 'auto') {
+                document.getElementById('lives-ui').style.display = 'none';
+                document.getElementById('health-ui').style.display = 'none';
+                lives = 999;
+            } else if (currentGameMode === 'recovery') {
                 health = 50;
                 document.getElementById('lives-ui').style.display = 'none';
                 document.getElementById('health-ui').style.display = 'block';
@@ -666,14 +672,14 @@
                 let speedFactor = currentSong.speed * 8.5 * dynamicSpeed;
                 n.el.style.top = (currentY + speedFactor) + 'px';
 
-                if (currentGameMode === 'auto' && currentY > hitZone - 20 && !n.hit) {
+                if (currentGameMode === 'auto' && currentY > hitZone - 50 && !n.hit) {
                     handleInput(n.lane);
                 }
 
                 if (currentY > window.innerHeight) {
                     n.el.remove();
                     activeNotes = activeNotes.filter(x => x.id !== n.id);
-                    if (!n.hit) {
+                    if (!n.hit && currentGameMode !== 'auto') {
                         if (currentGameMode === 'recovery') {
                             modifyHealth(-5);
                             updateStatus('MISS', '#ff4757');
@@ -737,6 +743,8 @@
                 } else if (currentGameMode === 'auto') {
                     updateStatus('AUTO', '#fff');
                     combo++;
+                    perfects++;
+                    score += 100;
                 } else {
                     if (dist < 50) { 
                         score += (100 * (1 + combo * 0.02)); 
@@ -799,8 +807,7 @@
             isPaused = !isPaused;
             if (isPaused) {
                 audio.pause();
-                if (currentSong.videoUrl && currentSong.videoUrl !== '') {
-                    const videoIframe = document.getElementById('video-background');
+                if (videoIframe && videoIframe.contentWindow) {
                     videoIframe.contentWindow.postMessage('{"event":"command","func":"pauseVideo","args":""}', '*');
                 }
             } else { 
@@ -808,8 +815,7 @@
                     audioCtx.resume();
                 }
                 audio.play(); 
-                if (currentSong.videoUrl && currentSong.videoUrl !== '') {
-                    const videoIframe = document.getElementById('video-background');
+                if (videoIframe && videoIframe.contentWindow) {
                     videoIframe.contentWindow.postMessage('{"event":"command","func":"playVideo","args":""}', '*');
                 }
                 requestAnimationFrame(gameLoop); 
@@ -830,8 +836,7 @@
             activeNotes.forEach(n => n.el.remove());
             activeNotes = [];
             document.getElementById('overlay-game').style.display = 'none';
-            if (currentSong.videoUrl && currentSong.videoUrl !== '') {
-                const videoIframe = document.getElementById('video-background');
+            if (videoIframe && videoIframe.contentWindow) {
                 videoIframe.contentWindow.postMessage('{"event":"command","func":"playVideo","args":""}', '*');
             }
             if (audioCtx && audioCtx.state === 'suspended') {
@@ -844,8 +849,7 @@
 
         function endGame(win) {
             isDead = true; analyzerActive = false; audio.pause();
-            if (currentSong.videoUrl && currentSong.videoUrl !== '') {
-                const videoIframe = document.getElementById('video-background');
+            if (videoIframe && videoIframe.contentWindow) {
                 videoIframe.contentWindow.postMessage('{"event":"command","func":"pauseVideo","args":""}', '*');
             }
             const overlay = document.getElementById('overlay-game');
@@ -859,7 +863,7 @@
             stars.forEach(s => s.classList.remove('active'));
             
             if (currentGameMode === 'auto' || currentGameMode === 'recovery') {
-                document.getElementById('res-score').textContent = "N/A";
+                document.getElementById('res-score').textContent = currentGameMode === 'auto' ? Math.floor(score) : "N/A";
                 if (win) {
                     stars[0].classList.add('active');
                     stars[1].classList.add('active');
