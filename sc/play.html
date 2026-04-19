@@ -27,6 +27,7 @@
             --boost: #00f2ff;
             --nerf: #ff7f50;
             --track-opacity: 0.02;
+            --arrow-size: 100px;
         }
 
         body {
@@ -135,7 +136,7 @@
 
         .game-track {
             position: relative;
-            width: 500px;
+            width: 700px;
             height: 100%;
             background: rgba(255,255,255, var(--track-opacity));
             border-left: 2px solid var(--border);
@@ -150,13 +151,13 @@
             width: 100%;
             display: flex;
             justify-content: space-evenly;
-            padding: 0 10px;
+            padding: 0 20px;
             z-index: 100;
         }
 
         .slot {
-            width: 85px;
-            height: 85px;
+            width: var(--arrow-size);
+            height: var(--arrow-size);
             display: flex;
             justify-content: center;
             align-items: center;
@@ -165,8 +166,8 @@
         }
 
         .slot img {
-            width: 85px;
-            height: 85px;
+            width: 100%;
+            height: 100%;
             object-fit: contain;
             opacity: 0.15;
             filter: grayscale(1);
@@ -184,8 +185,8 @@
 
         .note {
             position: absolute;
-            width: 85px;
-            height: 85px;
+            width: var(--arrow-size);
+            height: var(--arrow-size);
             display: flex;
             justify-content: center;
             align-items: center;
@@ -194,8 +195,8 @@
         }
 
         .note img {
-            width: 85px;
-            height: 85px;
+            width: 100%;
+            height: 100%;
             object-fit: contain;
         }
 
@@ -494,7 +495,11 @@
         let audioOffset = parseInt(urlParams.get('offset'));
         let trackOpacity = parseFloat(urlParams.get('opacity'));
         let flashIntensity = parseInt(urlParams.get('flash'));
+        let arrowSize = parseInt(urlParams.get('arrowSize')) || 100;
         let currentGameMode = urlParams.get('mode');
+        
+        document.documentElement.style.setProperty('--arrow-size', arrowSize + 'px');
+        document.documentElement.style.setProperty('--track-opacity', trackOpacity);
 
         let combo = 0, maxCombo = 0, score = 0, perfects = 0, misses = 0, lives = 3;
         let isPaused = false, isDead = false, analyzerActive = false, isPlaying = false;
@@ -516,8 +521,6 @@
             document.getElementById('s2'),
             document.getElementById('s3')
         ];
-        
-        document.documentElement.style.setProperty('--track-opacity', trackOpacity);
 
         function triggerHitEffect(lane) {
             const slot = slots[lane];
@@ -674,7 +677,17 @@
                 note.el.style.top = currentY + 'px';
 
                 if (currentGameMode === 'auto' && currentY > hitZone - 50 && !note.hit) {
-                    handleInput(note.lane);
+                    note.hit = true;
+                    triggerHitEffect(note.lane);
+                    note.el.remove();
+                    activeNotes.splice(i, 1);
+                    combo++;
+                    perfects++;
+                    score += 100;
+                    if (combo > maxCombo) maxCombo = combo;
+                    document.getElementById('combo-text').textContent = combo;
+                    updateStatus('AUTO', '#fff');
+                    continue;
                 }
 
                 if (!note.hit && currentY >= hitZone) {
@@ -683,17 +696,12 @@
                     note.el.remove();
                     activeNotes.splice(i, 1);
                     
-                    if (currentGameMode === 'auto') {
-                        combo++;
-                        perfects++;
-                        score += 100;
-                        updateStatus('AUTO', '#fff');
-                    } else if (currentGameMode === 'recovery') {
+                    if (currentGameMode === 'recovery') {
                         modifyHealth(3);
                         combo++;
                         perfects++;
                         updateStatus('PERFECT', '#00ffcc');
-                    } else {
+                    } else if (currentGameMode === 'normal') {
                         score += (100 * (1 + combo * 0.02));
                         combo++;
                         perfects++;
@@ -712,7 +720,7 @@
                         if (currentGameMode === 'recovery') {
                             modifyHealth(-5);
                             updateStatus('MISS', '#ff4757');
-                        } else {
+                        } else if (currentGameMode === 'normal') {
                             loseLife();
                         }
                         misses++;
@@ -761,12 +769,7 @@
                         updateStatus('GREAT', '#eab000');
                     }
                     combo++;
-                } else if (currentGameMode === 'auto') {
-                    updateStatus('AUTO', '#fff');
-                    combo++;
-                    perfects++;
-                    score += 100;
-                } else {
+                } else if (currentGameMode === 'normal') {
                     if (dist < 50) {
                         score += (100 * (1 + combo * 0.02));
                         combo++;
@@ -788,7 +791,7 @@
                     misses++;
                     combo = 0;
                     document.getElementById('combo-text').textContent = "0";
-                } else if (currentGameMode !== 'auto') {
+                } else if (currentGameMode === 'normal') {
                     loseLife();
                 }
             }
